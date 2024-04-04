@@ -1,0 +1,9 @@
+<resources>
+    <string name="app_name">Netto</string>
+    <string name="ingredients">Ingredients</string>
+    <string name="nutritional_info">Nutritional Info</string>
+    <string name="description">Description</string>
+    <string name="_100_g">100 g</string>
+    <string name="serving">Serving</string>
+    <string name="total">Total</string>
+</resources>
