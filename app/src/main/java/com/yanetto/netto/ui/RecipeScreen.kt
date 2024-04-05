@@ -13,6 +13,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.foundation.text.KeyboardActions
@@ -29,6 +30,7 @@ import androidx.compose.material3.OutlinedCard
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -44,57 +46,49 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
+import androidx.lifecycle.viewmodel.compose.viewModel
 import com.yanetto.netto.R
+import com.yanetto.netto.model.Ingredient
 import com.yanetto.netto.ui.theme.NettoTheme
 
 @Composable
 fun RecipeScreen(
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    nettoViewModel: NettoViewModel = viewModel()
 ){
+    val nettoUiState by nettoViewModel.uiState.collectAsState()
+
     LazyColumn (
         modifier = Modifier
             .fillMaxWidth()
             .padding(8.dp)
-            //.verticalScroll(rememberScrollState())
             .scrollable(
                 orientation = Orientation.Vertical,
                 state = rememberScrollState()
             )
     ) {
         item{
-            Text(
-                text = "Sticky Red Wine Shallots With Oregano Polenta",
-                style = MaterialTheme.typography.displaySmall,
-                modifier = modifier
-                    .padding(8.dp)
+            NameAndDescription(
+                modifier = modifier,
+                recipeName = nettoUiState.currentRecipe.name,
+                recipeDescription = nettoUiState.currentRecipe.description
+            )
+
+            ServingsCard(
+                modifier = modifier,
+                servingsCount = nettoUiState.currentRecipe.servingsCount
+            )
+
+            Label(
+                modifier = modifier,
+                labelText = stringResource(R.string.ingredients)
             )
 
             Divider(
                 modifier = modifier
+                    .padding(start = 8.dp, end = 8.dp)
                     .fillMaxWidth()
                     .width(1.dp)
-                    .padding(8.dp)
-            )
-
-            Text(
-                text = "DescriptionDescriptionDescriptionDescriptionDescriptionDescriptionDescriptionDescription",
-                style = MaterialTheme.typography.titleLarge,
-                modifier = modifier
-                    .padding(8.dp)
-            )
-
-            ServingsCard(modifier = modifier)
-
-            Text(
-                text = "Ingredients",
-                style = MaterialTheme.typography.headlineMedium,
-                modifier = modifier.padding(top = 8.dp, bottom = 8.dp)
-            )
-
-            Divider(modifier = Modifier
-                .fillMaxWidth()
-                .width(1.dp)
             )
         }
 
@@ -132,77 +126,162 @@ fun RecipeScreen(
 //            }
 //        }
 
-        items(15) {
-            IngredientItem(modifier)
+        items(nettoUiState.currentRecipe.ingredientList) {ingredient ->
+            IngredientItem(
+                modifier = modifier,
+                ingredient = ingredient
+            )
         }
 
         item{
-            Text(
-                text = "Nutritional Info",
-                style = MaterialTheme.typography.headlineMedium,
-                modifier = modifier.padding(top = 8.dp)
+            Label(
+                modifier = modifier,
+                labelText = stringResource(R.string.nutritional_info)
             )
 
-            Row(
-                modifier = modifier
-                    .padding(8.dp)
-            ) {
-                val colors = ButtonDefaults.outlinedButtonColors(
-                    containerColor = MaterialTheme.colorScheme.surface,
-                    contentColor = MaterialTheme.colorScheme.onSurface,
-                    disabledContainerColor = MaterialTheme.colorScheme.primary,
-                    disabledContentColor = MaterialTheme.colorScheme.onPrimary
-                )
-                OutlinedButton(
-                    onClick = {  },
-                    colors = colors,
-                    modifier = Modifier
-                        .weight(1f, true)
-                ) {
-                    Text(
-                        text = stringResource(R.string._100_g)
-                    )
-                }
-                Spacer(modifier = Modifier.weight(0.05f, true))
-                OutlinedButton(
-                    enabled = false,
-                    onClick = {  },
-                    modifier = Modifier
-                        .weight(1f, true),
-                    colors = colors
-                ) {
-                    Text(stringResource(R.string.serving))
-                }
-                Spacer(modifier = Modifier.weight(0.05f, true))
-                OutlinedButton(
-                    onClick = {  },
-                    modifier = Modifier
-                        .weight(1f, true),
-                    colors = colors,
-                ) {
-                    Text(stringResource(R.string.total))
-                }
-            }
+            NutritionalInfoSwitch(modifier = modifier)
 
-            NutritionalInfo(modifier = Modifier)
+            NutritionalInfo(
+                modifier = Modifier,
+                energy = nettoUiState.currentRecipe.energy,
+                protein = nettoUiState.currentRecipe.protein,
+                fat = nettoUiState.currentRecipe.fat,
+                carbohydrates = nettoUiState.currentRecipe.carbohydrates
+            )
 
             Spacer(modifier = Modifier.padding(4.dp))
-            PriceAndWeightLabels(label = stringResource(R.string.price), number = "100 rub", modifier = Modifier)
-            PriceAndWeightLabels(label = stringResource(R.string.weight), number = "200 g", modifier = Modifier)
+            PriceAndWeightLabels(
+                label = stringResource(R.string.price),
+                number = "${nettoUiState.currentRecipe.totalPrice} rub",
+                modifier = modifier
+            )
+            PriceAndWeightLabels(
+                label = stringResource(R.string.weight),
+                number = "${nettoUiState.currentRecipe.totalWeight} g",
+                modifier = modifier
+            )
         }
 
     }
 }
 
 @Composable
+fun NutritionalInfoSwitch(
+    modifier: Modifier
+){
+    Row(
+        modifier = modifier.padding(bottom = 8.dp, start = 8.dp, end = 8.dp)
+    ) {
+        val colors = ButtonDefaults.outlinedButtonColors(
+            containerColor = MaterialTheme.colorScheme.surface,
+            contentColor = MaterialTheme.colorScheme.onSurface,
+            disabledContainerColor = MaterialTheme.colorScheme.primary,
+            disabledContentColor = MaterialTheme.colorScheme.onPrimary
+        )
+        OutlinedButton(
+            onClick = {  },
+            colors = colors,
+            modifier = Modifier
+                .weight(1f, true)
+        ) {
+            Text(
+                text = stringResource(R.string._100_g),
+                style = MaterialTheme.typography.titleMedium
+            )
+        }
+        Spacer(modifier = Modifier.weight(0.05f, true))
+        OutlinedButton(
+            enabled = false,
+            onClick = {  },
+            modifier = Modifier
+                .weight(1f, true),
+            colors = colors
+        ) {
+            Text(
+                text = stringResource(R.string.serving),
+                style = MaterialTheme.typography.titleMedium
+            )
+        }
+        Spacer(modifier = Modifier.weight(0.05f, true))
+        OutlinedButton(
+            onClick = {  },
+            modifier = Modifier
+                .weight(1f, true),
+            colors = colors,
+        ) {
+            Text(
+                text = stringResource(R.string.total),
+                style = MaterialTheme.typography.titleMedium)
+        }
+    }
+}
+
+@Composable
+fun Label(
+    modifier: Modifier,
+    labelText: String
+){
+    Text(
+        text = labelText,
+        style = MaterialTheme.typography.headlineMedium,
+        modifier = modifier.padding(8.dp)
+    )
+}
+
+@Composable
+fun NameAndDescription(
+    modifier: Modifier,
+    recipeName: String,
+    recipeDescription: String
+){
+    Text(
+        text = recipeName,
+        style = MaterialTheme.typography.displaySmall,
+        modifier = modifier
+            .padding(8.dp)
+    )
+
+    Divider(
+        modifier = modifier
+            .fillMaxWidth()
+            .width(1.dp)
+            .padding(8.dp)
+    )
+
+    Text(
+        text = recipeDescription,
+        style = MaterialTheme.typography.titleLarge,
+        modifier = modifier
+            .padding(8.dp)
+    )
+}
+
+@Composable
 fun NutritionalInfo(
-    modifier: Modifier = Modifier
+    modifier: Modifier,
+    energy: Float,
+    protein: Float,
+    fat: Float,
+    carbohydrates: Float
 ){
     Divider(modifier = Modifier
         .fillMaxWidth()
         .width(1.dp)
+        .padding(start = 8.dp, end = 8.dp)
     )
 
+    NutritionalItem(modifier = modifier, param = stringResource(R.string.energy), info = "$energy kcal")
+    NutritionalItem(modifier = modifier, param = stringResource(R.string.protein), info = "$protein g")
+    NutritionalItem(modifier = modifier, param = stringResource(R.string.fat), info = "$fat g")
+    NutritionalItem(modifier = modifier, param = stringResource(R.string.carbohydrates), info = "$carbohydrates g")
+}
+
+@Composable
+fun NutritionalItem(
+    modifier: Modifier,
+    param: String,
+    info: String
+){
     Row(
         modifier = modifier
             .fillMaxWidth()
@@ -211,110 +290,26 @@ fun NutritionalInfo(
     ) {
 
         Text(
-            text = "Energy",
+            text = param,
             textAlign = TextAlign.Start,
-            maxLines = 1,
-            overflow = TextOverflow.Clip
+            overflow = TextOverflow.Clip,
+            style = MaterialTheme.typography.titleMedium
         )
 
         Spacer(modifier = Modifier.weight(1f, true))
 
         Text(
             modifier = Modifier,
-            text = "204 kcal",
-            textAlign = TextAlign.End
+            text = info,
+            textAlign = TextAlign.End,
+            style = MaterialTheme.typography.titleMedium
         )
     }
+
     Divider(modifier = Modifier
         .fillMaxWidth()
         .width(1.dp)
-    )
-
-
-    Row(
-        modifier = modifier
-            .fillMaxWidth()
-            .padding(8.dp),
-        verticalAlignment = Alignment.CenterVertically
-    ) {
-
-        Text(
-            text = "Protein",
-            textAlign = TextAlign.Start,
-            maxLines = 1,
-            overflow = TextOverflow.Clip
-        )
-
-
-        Spacer(modifier = Modifier.weight(1f, true))
-        Text(
-            modifier = Modifier,
-            text = "15 g",
-            textAlign = TextAlign.End
-        )
-    }
-    Divider(modifier = Modifier
-        .fillMaxWidth()
-        .width(1.dp)
-    )
-
-    Row(
-        modifier = modifier
-            .fillMaxWidth()
-            .padding(8.dp),
-        verticalAlignment = Alignment.CenterVertically
-    ) {
-
-
-        Text(
-            text = "Fat",
-            textAlign = TextAlign.Start,
-            maxLines = 1,
-            overflow = TextOverflow.Clip
-        )
-        Spacer(modifier = Modifier.size(4.dp))
-
-
-        Spacer(modifier = Modifier.weight(1f, true))
-        Text(
-            modifier = Modifier,
-            text = "8 g",
-            textAlign = TextAlign.End
-        )
-    }
-    Divider(modifier = Modifier
-        .fillMaxWidth()
-        .width(1.dp)
-    )
-
-
-    Row(
-        modifier = modifier
-            .fillMaxWidth()
-            .padding(8.dp),
-        verticalAlignment = Alignment.CenterVertically
-    ) {
-
-
-        Text(
-            text = "Carbohydrates",
-            textAlign = TextAlign.Start,
-            maxLines = 1,
-            overflow = TextOverflow.Clip
-        )
-        Spacer(modifier = Modifier.size(4.dp))
-
-
-        Spacer(modifier = Modifier.weight(1f, true))
-        Text(
-            modifier = Modifier,
-            text = "30 g",
-            textAlign = TextAlign.End
-        )
-    }
-    Divider(modifier = Modifier
-        .fillMaxWidth()
-        .width(1.dp)
+        .padding(start = 8.dp, end = 8.dp)
     )
 }
 
@@ -332,14 +327,14 @@ fun PriceAndWeightLabels(
         verticalAlignment = Alignment.CenterVertically
     ) {
         Text(
-            fontSize = 20.sp,
+            style = MaterialTheme.typography.headlineMedium,
             modifier = Modifier,
             text = label,
             textAlign = TextAlign.Start
         )
         Spacer(modifier = modifier.weight(1f, true))
         Text(
-            fontSize = 20.sp,
+            style = MaterialTheme.typography.headlineMedium,
             modifier = Modifier,
             text = number,
             textAlign = TextAlign.End
@@ -349,7 +344,8 @@ fun PriceAndWeightLabels(
 
 @Composable
 fun IngredientItem(
-    modifier: Modifier = Modifier
+    modifier: Modifier,
+    ingredient: Ingredient
 ){
     val focusManager = LocalFocusManager.current
     Row(
@@ -360,13 +356,13 @@ fun IngredientItem(
     ) {
         Column(modifier = Modifier.weight(2f)) {
             Text(
-                text = "Red wine",
+                text = ingredient.name,
                 textAlign = TextAlign.Start,
                 style = MaterialTheme.typography.titleMedium
             )
             Spacer(modifier = Modifier.size(4.dp))
             Text(
-                text = "description",
+                text = ingredient.manufacturer,
                 textAlign = TextAlign.Start,
                 maxLines = 1,
                 overflow = TextOverflow.Ellipsis,
@@ -397,10 +393,12 @@ fun IngredientItem(
         )
         Text(
             text = "g",
+            style = MaterialTheme.typography.titleMedium,
             modifier = Modifier.padding(4.dp)
         )
     }
     Divider(modifier = modifier
+        .padding(start = 8.dp, end = 8.dp)
         .fillMaxWidth()
         .width(1.dp)
     )
@@ -408,7 +406,8 @@ fun IngredientItem(
 
 @Composable
 fun ServingsCard(
-    modifier:Modifier = Modifier
+    modifier: Modifier,
+    servingsCount: Int
 ){
     OutlinedCard(
         shape = ButtonDefaults.shape,
@@ -433,9 +432,9 @@ fun ServingsCard(
             }
 
             Text(
-                text = "3 Servings",
+                text = "$servingsCount Servings",
                 textAlign = TextAlign.Center,
-                fontSize = 20.sp,
+                style = MaterialTheme.typography.headlineSmall,
                 modifier = Modifier
                     .weight(4f, true)
             )
