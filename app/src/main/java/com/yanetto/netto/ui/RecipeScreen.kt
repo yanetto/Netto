@@ -48,7 +48,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.yanetto.netto.R
-import com.yanetto.netto.model.Ingredient
+import com.yanetto.netto.model.IngredientInRecipe
 import com.yanetto.netto.ui.theme.NettoTheme
 
 @Composable
@@ -70,13 +70,14 @@ fun RecipeScreen(
         item{
             NameAndDescription(
                 modifier = modifier,
-                recipeName = nettoUiState.currentRecipe.name,
-                recipeDescription = nettoUiState.currentRecipe.description
+                recipeName = nettoUiState.recipes[nettoUiState.currentRecipePosition].name,
+                recipeDescription = nettoUiState.recipes[nettoUiState.currentRecipePosition].description
             )
 
             ServingsCard(
                 modifier = modifier,
-                servingsCount = nettoUiState.currentRecipe.servingsCount
+                servingsCount = nettoUiState.recipes[nettoUiState.currentRecipePosition].servingsCount,
+                onChangeServingsButtonClick = {nettoViewModel.changeServingCount(it)}
             )
 
             Label(
@@ -126,7 +127,7 @@ fun RecipeScreen(
 //            }
 //        }
 
-        items(nettoUiState.currentRecipe.ingredientList) {ingredient ->
+        items(nettoUiState.recipes[nettoUiState.currentRecipePosition].ingredientList) {ingredient ->
             IngredientItem(
                 modifier = modifier,
                 ingredient = ingredient
@@ -143,21 +144,21 @@ fun RecipeScreen(
 
             NutritionalInfo(
                 modifier = Modifier,
-                energy = nettoUiState.currentRecipe.energy,
-                protein = nettoUiState.currentRecipe.protein,
-                fat = nettoUiState.currentRecipe.fat,
-                carbohydrates = nettoUiState.currentRecipe.carbohydrates
+                energy = nettoUiState.recipes[nettoUiState.currentRecipePosition].energy,
+                protein = nettoUiState.recipes[nettoUiState.currentRecipePosition].protein,
+                fat = nettoUiState.recipes[nettoUiState.currentRecipePosition].fat,
+                carbohydrates = nettoUiState.recipes[nettoUiState.currentRecipePosition].carbohydrates
             )
 
             Spacer(modifier = Modifier.padding(4.dp))
             PriceAndWeightLabels(
                 label = stringResource(R.string.price),
-                number = "${nettoUiState.currentRecipe.totalPrice} rub",
+                number = "${nettoUiState.recipes[nettoUiState.currentRecipePosition].totalPrice} rub",
                 modifier = modifier
             )
             PriceAndWeightLabels(
                 label = stringResource(R.string.weight),
-                number = "${nettoUiState.currentRecipe.totalWeight} g",
+                number = "${nettoUiState.recipes[nettoUiState.currentRecipePosition].totalWeight} g",
                 modifier = modifier
             )
         }
@@ -345,7 +346,7 @@ fun PriceAndWeightLabels(
 @Composable
 fun IngredientItem(
     modifier: Modifier,
-    ingredient: Ingredient
+    ingredient: IngredientInRecipe
 ){
     val focusManager = LocalFocusManager.current
     Row(
@@ -356,13 +357,13 @@ fun IngredientItem(
     ) {
         Column(modifier = Modifier.weight(2f)) {
             Text(
-                text = ingredient.name,
+                text = ingredient.ingredient.name,
                 textAlign = TextAlign.Start,
                 style = MaterialTheme.typography.titleMedium
             )
             Spacer(modifier = Modifier.size(4.dp))
             Text(
-                text = ingredient.manufacturer,
+                text = ingredient.ingredient.manufacturer,
                 textAlign = TextAlign.Start,
                 maxLines = 1,
                 overflow = TextOverflow.Ellipsis,
@@ -372,7 +373,7 @@ fun IngredientItem(
 
         Spacer(modifier = Modifier.size(16.dp))
 
-        var textValue by remember{mutableStateOf(TextFieldValue("25.5"))}
+        var textValue by remember{mutableStateOf(TextFieldValue(ingredient.weight.toString()))}
 
         val color = if(textValue.text.toFloatOrNull() != null) MaterialTheme.colorScheme.onSurface else MaterialTheme.colorScheme.error
 
@@ -407,7 +408,8 @@ fun IngredientItem(
 @Composable
 fun ServingsCard(
     modifier: Modifier,
-    servingsCount: Int
+    servingsCount: Int,
+    onChangeServingsButtonClick: (Boolean) -> Unit
 ){
     OutlinedCard(
         shape = ButtonDefaults.shape,
@@ -418,7 +420,7 @@ fun ServingsCard(
             modifier = Modifier,
             verticalAlignment = Alignment.CenterVertically
         ){
-            IconButton(onClick = { /*TODO*/ },
+            IconButton(onClick = { onChangeServingsButtonClick(false) },
                 modifier = Modifier
                     .padding(0.dp)
             ) {
@@ -439,7 +441,7 @@ fun ServingsCard(
                     .weight(4f, true)
             )
 
-            IconButton(onClick = { /*TODO*/ },
+            IconButton(onClick = { onChangeServingsButtonClick(true) },
                 modifier = Modifier
                     .padding(0.dp)
             ) {
