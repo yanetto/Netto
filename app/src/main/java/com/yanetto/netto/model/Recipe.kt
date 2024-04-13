@@ -15,4 +15,7 @@ class Recipe(
         val ingredient = ingredientList[index]
         return ingredient.weight * newTotalWeight / totalWeight
     }
+    fun getIngredientPartOfTotalWeight(ingredient: IngredientInRecipe): Float{
+        return ingredient.weight / totalWeight
+    }
 }

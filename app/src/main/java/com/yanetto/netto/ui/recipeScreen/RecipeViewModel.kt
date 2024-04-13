@@ -1,6 +1,7 @@
 package com.yanetto.netto.ui.recipeScreen
 
 import androidx.lifecycle.ViewModel
+import com.yanetto.netto.model.IngredientInRecipe
 import com.yanetto.netto.model.NutritionalOption
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -63,5 +64,13 @@ class RecipeViewModel: ViewModel() {
        _uiState.update {
            currentState -> currentState.copy(selectedNutritionalOption = option)
        }
+    }
+
+    fun onChangeIngredientWeight(ingredientInRecipe: IngredientInRecipe, newIngredientWeight: Float){
+        val part = _uiState.value.currentRecipe.getIngredientPartOfTotalWeight(ingredientInRecipe)
+        _uiState.update {
+            currentState -> currentState.copy(updatedWeight = newIngredientWeight / part)
+        }
+        changeNutritionalOption(_uiState.value.selectedNutritionalOption)
     }
 }

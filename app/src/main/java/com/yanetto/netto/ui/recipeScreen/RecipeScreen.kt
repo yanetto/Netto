@@ -4,6 +4,9 @@ package com.yanetto.netto.ui.recipeScreen
 
 import androidx.compose.foundation.gestures.Orientation
 import androidx.compose.foundation.gestures.scrollable
+import androidx.compose.foundation.interaction.MutableInteractionSource
+import androidx.compose.foundation.interaction.collectIsFocusedAsState
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -37,6 +40,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
@@ -52,6 +56,7 @@ import com.yanetto.netto.model.IngredientInRecipe
 import com.yanetto.netto.model.NutritionalOption
 import com.yanetto.netto.ui.theme.NettoTheme
 import java.math.RoundingMode
+
 
 @Composable
 fun RecipeScreen(
@@ -77,7 +82,7 @@ fun RecipeScreen(
 
             ServingsCard(
                 servingsCount = recipeUiState.updatedServingsCount,
-                onChangeServingsButtonClick = {recipeViewModel.changeServingCount(it)}
+                onChangeServingsButtonClick = recipeViewModel::changeServingCount
             )
 
             Label(
@@ -96,7 +101,8 @@ fun RecipeScreen(
             val ingredient = recipeUiState.currentRecipe.ingredientList[it]
             IngredientItem(
                 ingredient = ingredient,
-                weight = recipeUiState.currentRecipe.getIngredientWeight(it, newTotalWeight = recipeUiState.updatedWeight)
+                weight = recipeUiState.currentRecipe.getIngredientWeight(it, newTotalWeight = recipeUiState.updatedWeight),
+                onChangeIngredientWeight = recipeViewModel::onChangeIngredientWeight
             )
         }
 
@@ -105,7 +111,7 @@ fun RecipeScreen(
                 labelText = stringResource(R.string.nutritional_info)
             )
 
-            NutritionalInfoSwitch(uiState = recipeUiState, onChangeNutritionalOption = {recipeViewModel.changeNutritionalOption(it)})
+            NutritionalInfoSwitch(uiState = recipeUiState, onChangeNutritionalOption = recipeViewModel::changeNutritionalOption)
 
             NutritionalInfo(
                 energy = recipeUiState.currentRecipe.energy * recipeUiState.newWeight / 100,
@@ -319,7 +325,8 @@ fun PriceAndWeightLabels(
 fun IngredientItem(
     modifier: Modifier = Modifier,
     ingredient: IngredientInRecipe,
-    weight: Float
+    weight: Float,
+    onChangeIngredientWeight: (IngredientInRecipe, Float) -> Unit
 ){
     val focusManager = LocalFocusManager.current
     Row(
@@ -346,31 +353,52 @@ fun IngredientItem(
 
         Spacer(modifier = Modifier.size(16.dp))
 
-        var textValue by remember{mutableStateOf(TextFieldValue(weight.toString()))}
-        LaunchedEffect(weight){
-            textValue = TextFieldValue(weight.toBigDecimal().setScale(1, RoundingMode.UP).toFloat().toString())
+        var textValue by remember{mutableStateOf(TextFieldValue(""))}
+        val interactionSource = remember{ MutableInteractionSource() }
+        val isFocused = interactionSource.collectIsFocusedAsState()
+        val weightHint = weight.toBigDecimal().setScale(1, RoundingMode.UP).toFloat().toString()
+
+        LaunchedEffect(isFocused.value){
+            if(!isFocused.value) textValue = TextFieldValue("")
         }
 
-        val color = if(textValue.text.toFloatOrNull() != null) MaterialTheme.colorScheme.onSurface else MaterialTheme.colorScheme.errorContainer
-
+        val color = if(textValue.text.toFloatOrNull() != null || textValue.text.isEmpty()) MaterialTheme.colorScheme.onSurface else MaterialTheme.colorScheme.errorContainer
+        val hintColor = if(isFocused.value) MaterialTheme.colorScheme.onSurface.copy(alpha = 0.3f) else MaterialTheme.colorScheme.onSurface
 
         BasicTextField(
             value = textValue,
-            //colors = TextFieldDefaults.outlinedTextFieldColors(
-                //focusedBorderColor = Color.Transparent,
-                //unfocusedBorderColor = Color.Transparent
-            //),
             onValueChange = {textValue = it},
             singleLine = true,
             modifier = Modifier
                 .weight(1f),
             textStyle = MaterialTheme.typography.titleMedium.copy(textAlign = TextAlign.End, color = color),
+            interactionSource = interactionSource,
             keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
-            keyboardActions = KeyboardActions(onDone  = {focusManager.clearFocus()})
-        )
+            keyboardActions = KeyboardActions(onDone  = {
+                onChangeIngredientWeight(ingredient, textValue.text.toFloat())
+                focusManager.clearFocus()
+            }),
+            cursorBrush = SolidColor(color)
+        ){
+            Box(
+                modifier = Modifier.fillMaxWidth()
+            ){
+                if(textValue.text.isEmpty()){
+                    Text(
+                        text = weightHint,
+                        style = MaterialTheme.typography.titleMedium,
+                        color = hintColor,
+                        modifier = Modifier.align(Alignment.CenterEnd)
+                    )
+                }
+                it()
+            }
+        }
+
         Text(
             text = stringResource(R.string.g),
-            style = MaterialTheme.typography.titleMedium
+            style = MaterialTheme.typography.titleMedium,
+            color = color
         )
     }
     Divider(modifier = modifier
