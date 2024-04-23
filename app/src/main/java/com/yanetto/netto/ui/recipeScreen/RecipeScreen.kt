@@ -128,7 +128,7 @@ fun RecipeScreen(
             )
             PriceAndWeightLabels(
                 label = stringResource(R.string.weight),
-                number = "${recipeUiState.newWeight} g",
+                number = stringResource(R.string.new_weight_g, recipeUiState.newWeight),
             )
             Spacer(
                 modifier = modifier
@@ -176,7 +176,7 @@ fun NutritionalInfoSwitch(
             colors = colors
         ) {
             Text(
-                text = stringResource(R.string.serving),
+                text = stringResource(R.string.str_serving),
                 style = MaterialTheme.typography.titleMedium
             )
         }
@@ -411,7 +411,7 @@ fun IngredientItem(
 @Composable
 fun ServingsCard(
     modifier: Modifier = Modifier,
-    servingsCount: Int,
+    servingsCount: Float,
     onChangeServingsButtonClick: (Boolean) -> Unit
 ){
     OutlinedCard(
@@ -424,7 +424,7 @@ fun ServingsCard(
             verticalAlignment = Alignment.CenterVertically
         ){
             IconButton(
-                enabled = servingsCount > 1,
+                enabled = servingsCount > 0,
                 onClick = { onChangeServingsButtonClick(false) },
                 modifier = Modifier
                     .padding(0.dp)
@@ -438,7 +438,7 @@ fun ServingsCard(
             }
 
             Text(
-                text = stringResource(R.string.servings, servingsCount),
+                text = if (servingsCount == servingsCount.toInt().toFloat()) stringResource(id = R.string.serving, servingsCount) else stringResource(id = R.string.servings, servingsCount),
                 textAlign = TextAlign.Center,
                 style = MaterialTheme.typography.headlineSmall,
                 modifier = Modifier

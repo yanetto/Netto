@@ -4,7 +4,7 @@
     <string name="nutritional_info">Nutritional Info</string>
     <string name="description">Description</string>
     <string name="_100_g">100 g</string>
-    <string name="serving">Serving</string>
+    <string name="serving">%.0f Servings</string>
     <string name="total">Total</string>
     <string name="price">Price:</string>
     <string name="price_value">%.1f rub</string>
@@ -13,8 +13,12 @@
     <string name="protein">Protein</string>
     <string name="fat">Fat</string>
     <string name="carbohydrates">Carbohydrates</string>
-    <string name="servings">%1$s Servings</string>
+    <string name="servings">%.1f Servings</string>
     <string name="g">\ g</string>
     <string name="kcal">%.1f kcal</string>
     <string name="g_value">%.1f g</string>
+    <string name="str_serving">Serving</string>
+    <string name="new_weight_g">%1$s g</string>
+    <string name="search_your_recipes">Search your recipes</string>
+    <string name="name">Name</string>
 </resources>

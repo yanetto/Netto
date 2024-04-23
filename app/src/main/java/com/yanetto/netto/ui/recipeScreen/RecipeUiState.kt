@@ -23,10 +23,10 @@ val recipe = Recipe(
 )
 data class RecipeUiState (
     val currentRecipe: Recipe = recipe,
-    val updatedServingsCount: Int = recipe.servingsCount,
-    val updatedIngredients: List<IngredientInRecipe> = recipe.ingredientList,
-    val updatedWeight: Float = recipe.totalWeight,
-    val newWeight: Float = recipe.totalWeight,
+    val updatedServingsCount: Float = currentRecipe.servingsCount.toFloat(),
+    val updatedIngredients: List<IngredientInRecipe> = currentRecipe.ingredientList,
+    val updatedWeight: Float = currentRecipe.totalWeight,
+    val newWeight: Float = currentRecipe.totalWeight,
     val selectedNutritionalOption: NutritionalOption = NutritionalOption.TOTAL
 )
 
