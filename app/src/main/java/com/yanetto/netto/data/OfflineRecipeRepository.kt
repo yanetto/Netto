@@ -8,9 +8,9 @@ class OfflineRecipeRepository(private val ingredientDao: IngredientDao) : Recipe
 
     override fun getItemStream(id: Int): Flow<Ingredient?> = ingredientDao.getItem(id)
 
-    override suspend fun insertItem(item: Ingredient) = ingredientDao.insert(item)
+    override suspend fun insertItem(ingredient: Ingredient) = ingredientDao.insert(ingredient)
 
-    override suspend fun deleteItem(item: Ingredient) = ingredientDao.delete(item)
+    override suspend fun deleteItem(ingredient: Ingredient) = ingredientDao.delete(ingredient)
 
-    override suspend fun updateItem(item: Ingredient) = ingredientDao.update(item)
+    override suspend fun updateItem(ingredient: Ingredient) = ingredientDao.update(ingredient)
 }
