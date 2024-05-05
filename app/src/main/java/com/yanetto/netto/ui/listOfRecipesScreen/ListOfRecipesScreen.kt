@@ -163,7 +163,7 @@ fun RecipeList(recipeList: List<Recipe>, onRecipeCardClicked: (Recipe) -> Unit, 
 
 @Preview
 @Composable
-fun RecipeScreenPreview(){
+fun ListOfRecipesScreenPreview(){
     NettoTheme {
         Surface (
             modifier = Modifier.fillMaxSize()
