@@ -5,7 +5,7 @@ class Recipe(
     var servingsCount: Int,
     var ingredientList: List<IngredientInRecipe>
 ){
-    val totalPrice = ingredientList.sumOf { it.ingredient.pricePerKg/1000 * it.weight.toDouble()}.toFloat()
+    val totalPrice = ingredientList.sumOf { it.ingredient.price/it.ingredient.price * it.weight.toDouble()}.toFloat()
     val totalWeight = ingredientList.sumOf {it.weight.toDouble()}.toFloat()
     val energy = ingredientList.sumOf {it.ingredient.energy.toDouble()}.toFloat()
     val protein = ingredientList.sumOf {it.ingredient.protein.toDouble()}.toFloat()

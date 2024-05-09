@@ -1,4 +1,3 @@
-@file:OptIn(ExperimentalMaterial3Api::class)
 
 package com.yanetto.netto.ui.recipeScreen
 
@@ -22,8 +21,7 @@ import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.Divider
-import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -89,7 +87,7 @@ fun RecipeScreen(
                 labelText = stringResource(R.string.ingredients)
             )
 
-            Divider(
+            HorizontalDivider(
                 modifier = Modifier
                     .padding(start = 8.dp, end = 8.dp)
                     .fillMaxWidth()
@@ -220,7 +218,7 @@ fun NameAndDescription(
             .padding(8.dp)
     )
 
-    Divider(
+    HorizontalDivider(
         modifier = modifier
             .fillMaxWidth()
             .width(1.dp)
@@ -243,10 +241,11 @@ fun NutritionalInfo(
     fat: Float,
     carbohydrates: Float
 ){
-    Divider(modifier = Modifier
-        .fillMaxWidth()
-        .width(1.dp)
-        .padding(start = 8.dp, end = 8.dp)
+    HorizontalDivider(
+        modifier = Modifier
+            .fillMaxWidth()
+            .width(1.dp)
+            .padding(start = 8.dp, end = 8.dp)
     )
 
     NutritionalItem(modifier = modifier, param = stringResource(R.string.energy), info = stringResource(R.string.kcal, energy))
@@ -285,10 +284,11 @@ fun NutritionalItem(
         )
     }
 
-    Divider(modifier = Modifier
-        .fillMaxWidth()
-        .width(1.dp)
-        .padding(start = 8.dp, end = 8.dp)
+    HorizontalDivider(
+        modifier = Modifier
+            .fillMaxWidth()
+            .width(1.dp)
+            .padding(start = 8.dp, end = 8.dp)
     )
 }
 
@@ -401,10 +401,11 @@ fun IngredientItem(
             color = color
         )
     }
-    Divider(modifier = modifier
-        .padding(start = 8.dp, end = 8.dp)
-        .fillMaxWidth()
-        .width(1.dp)
+    HorizontalDivider(
+        modifier = modifier
+            .padding(start = 8.dp, end = 8.dp)
+            .fillMaxWidth()
+            .width(1.dp)
     )
 }
 

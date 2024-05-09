@@ -7,9 +7,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.ui.Modifier
-import com.yanetto.netto.ui.NettoApp
-import com.yanetto.netto.ui.listOfRecipesScreen.ListOfRecipesScreen
-import com.yanetto.netto.ui.recipeScreen.RecipeScreen
+import com.yanetto.netto.ui.ingredientScreen.IngredientScreen
 import com.yanetto.netto.ui.theme.NettoTheme
 
 class MainActivity : ComponentActivity() {
@@ -22,7 +20,7 @@ class MainActivity : ComponentActivity() {
                     modifier = Modifier.fillMaxSize(),
                     color = MaterialTheme.colorScheme.background
                 ) {
-                    NettoApp()
+                    IngredientScreen()
                 }
             }
         }
