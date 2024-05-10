@@ -20,6 +20,8 @@ import com.yanetto.netto.ui.recipeScreen.RecipeScreen
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
+import com.yanetto.netto.ui.ingredientScreen.IngredientScreen
+import com.yanetto.netto.ui.listOfIngredientsScreen.ListOfIngredientsScreen
 import com.yanetto.netto.ui.listOfRecipesScreen.ListOfRecipesScreen
 import com.yanetto.netto.ui.recipeScreen.RecipeViewModel
 
@@ -80,7 +82,7 @@ fun NettoApp(
 
         NavHost(
             navController = navController,
-            startDestination = NettoScreen.ListOfRecipesScreen.name,
+            startDestination = NettoScreen.ListOfIngredientsScreen.name,
             modifier = Modifier.padding(innerPadding)
         ){
             composable(route = NettoScreen.RecipeScreen.name){
@@ -94,7 +96,16 @@ fun NettoApp(
                         navController.navigate(NettoScreen.RecipeScreen.name)
                     }
                 )
+            }
 
+            composable(route = NettoScreen.ListOfIngredientsScreen.name){
+                ListOfIngredientsScreen(onIngredientCardClicked = {
+                    navController.navigate(NettoScreen.IngredientScreen.name)
+                })
+            }
+
+            composable(route = NettoScreen.IngredientScreen.name){
+                IngredientScreen()
             }
         }
     }

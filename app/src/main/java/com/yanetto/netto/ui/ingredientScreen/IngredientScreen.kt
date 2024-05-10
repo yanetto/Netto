@@ -35,80 +35,87 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.focus.FocusManager
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.yanetto.netto.R
+import com.yanetto.netto.data.RecipeRepository
+import com.yanetto.netto.ui.recipeScreen.recipe
 import com.yanetto.netto.ui.theme.NettoTheme
+import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
 
 @Composable
 fun IngredientScreen(
     modifier: Modifier = Modifier,
-    ingredientViewModel: IngredientViewModel = viewModel(factory = IngredientViewModel.Factory)
+    ingredientViewModel: IngredientViewModel = viewModel(factory = IngredientViewModel.Factory),
+
 ){
     val coroutineScope = rememberCoroutineScope()
 
-    LazyColumn(
-        modifier = modifier
+    Column {
+        Row (modifier = Modifier
             .fillMaxWidth()
-            .scrollable(
-                orientation = Orientation.Vertical,
-                state = rememberScrollState()
-            )
-    ){
-        item {
-            Row (modifier = Modifier
-                .fillMaxWidth()
-                .padding(top = 8.dp, start = 8.dp, end = 8.dp),
-                horizontalArrangement = Arrangement.SpaceBetween
+            .padding(top = 8.dp, start = 8.dp, end = 8.dp),
+            horizontalArrangement = Arrangement.SpaceBetween
+        ){
+            IconButton(
+                enabled = true,
+                onClick = {  },
+                modifier = Modifier
+                    .size(48.dp)
             ){
-                IconButton(
-                    enabled = true,
-                    onClick = {  },
-                    modifier = Modifier
-                        .size(48.dp)
-                ){
-                    Icon(
-                        painter = painterResource(id = R.drawable.add_a_photo_24dp),
-                        contentDescription = null,
-                        tint = MaterialTheme.colorScheme.primary
-                    )
-                }
-                
-                IconButton(
-                    enabled = true,
-                    onClick = { coroutineScope.launch {ingredientViewModel.saveItem()} },
-                    modifier = Modifier
-                        .size(48.dp)
-                ) {
-                    Icon(
-                        painter = painterResource(id = R.drawable.done_24dp),
-                        contentDescription = null,
-                        modifier = Modifier,
-                        tint = MaterialTheme.colorScheme.primary
-                    )
-                }
-            }
-
-            Spacer(modifier = Modifier.height(128.dp))
-            
-            Card (
-                shape = RoundedCornerShape(24.dp)
-            ){
-
-                IngredientInputForm(
-                    ingredientDetails = ingredientViewModel.ingredientUiState.ingredientDetails,
-                    onValueChange = ingredientViewModel::updateUiState
+                Icon(
+                    painter = painterResource(id = R.drawable.add_a_photo_24dp),
+                    contentDescription = null,
+                    tint = MaterialTheme.colorScheme.primary
                 )
             }
 
+            IconButton(
+                enabled = true,
+                onClick = { coroutineScope.launch {ingredientViewModel.saveItem()} },
+                modifier = Modifier
+                    .size(48.dp)
+            ) {
+                Icon(
+                    painter = painterResource(id = R.drawable.done_24dp),
+                    contentDescription = null,
+                    modifier = Modifier,
+                    tint = MaterialTheme.colorScheme.primary
+                )
+            }
+        }
+
+        LazyColumn(
+            modifier = modifier
+                .fillMaxWidth()
+                .scrollable(
+                    orientation = Orientation.Vertical,
+                    state = rememberScrollState()
+                )
+        ){
+            item {
+                Spacer(modifier = Modifier.height(128.dp))
+                Card (
+                    shape = RoundedCornerShape(24.dp)
+                ){
+                    IngredientInputForm(
+                        ingredientDetails = ingredientViewModel.ingredientUiState.ingredientDetails,
+                        onValueChange = ingredientViewModel::updateUiState
+                    )
+                }
+
+            }
         }
     }
+
     
 }
 
@@ -132,9 +139,8 @@ fun IngredientInputForm(
 ){
 
     Column (
-        modifier = Modifier.padding(horizontal = 16.dp, vertical = 16.dp)
+        modifier = modifier.padding(horizontal = 16.dp, vertical = 16.dp)
     ) {
-        val hintColor = MaterialTheme.colorScheme.onSurface
 
         TextField(
             value = ingredientDetails.name,
@@ -148,11 +154,11 @@ fun IngredientInputForm(
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(vertical = 4.dp),
-            textStyle = MaterialTheme.typography.titleMedium.copy(textAlign = TextAlign.Start, color = hintColor),
+            textStyle = MaterialTheme.typography.titleMedium.copy(textAlign = TextAlign.Start),
             //interactionSource = interactionSource,
             keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Text),
             keyboardActions = KeyboardActions(onDone  = {}),
-            colors = TextFieldDefaults.outlinedTextFieldColors(
+            colors = TextFieldDefaults.colors(
                 //containerColor = MaterialTheme.colorScheme.background,
                 cursorColor = MaterialTheme.colorScheme.primary
             )
@@ -170,11 +176,11 @@ fun IngredientInputForm(
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(vertical = 4.dp),
-            textStyle = MaterialTheme.typography.titleMedium.copy(textAlign = TextAlign.Start, color = hintColor),
+            textStyle = MaterialTheme.typography.titleMedium.copy(textAlign = TextAlign.Start),
             //interactionSource = interactionSource,
             keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Text),
             keyboardActions = KeyboardActions(onDone  = {}),
-            colors = TextFieldDefaults.outlinedTextFieldColors(
+            colors = TextFieldDefaults.colors(
                 //containerColor = MaterialTheme.colorScheme.background,
                 cursorColor = MaterialTheme.colorScheme.primary
             )
@@ -204,11 +210,11 @@ fun IngredientInputForm(
                     },
                     modifier = Modifier.width(96.dp),
                     singleLine = true,
-                    textStyle = MaterialTheme.typography.titleMedium.copy(textAlign = TextAlign.End, color = hintColor),
+                    textStyle = MaterialTheme.typography.titleMedium.copy(textAlign = TextAlign.End),
                     //interactionSource = interactionSource,
                     keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
                     keyboardActions = KeyboardActions(onDone  = {}),
-                    colors = TextFieldDefaults.outlinedTextFieldColors(
+                    colors = TextFieldDefaults.colors(
                         //containerColor = MaterialTheme.colorScheme.background,
                         cursorColor = MaterialTheme.colorScheme.primary
                     )
@@ -248,11 +254,11 @@ fun IngredientInputForm(
                     singleLine = true,
                     modifier = Modifier
                             .width(96.dp),
-                    textStyle = MaterialTheme.typography.titleMedium.copy(textAlign = TextAlign.End, color = hintColor),
+                    textStyle = MaterialTheme.typography.titleMedium.copy(textAlign = TextAlign.End),
                     //interactionSource = interactionSource,
                     keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
                     keyboardActions = KeyboardActions(onDone  = {}),
-                    colors = TextFieldDefaults.outlinedTextFieldColors(
+                    colors = TextFieldDefaults.colors(
                         //containerColor = MaterialTheme.colorScheme.background,
                         cursorColor = MaterialTheme.colorScheme.primary
                     )
@@ -272,8 +278,6 @@ fun IngredientInputForm(
         Label(modifier = Modifier.padding(start = 16.dp), labelText =  stringResource(id = R.string.nutritional_info))
 
         Column (modifier = Modifier.padding(start = 8.dp, end = 8.dp, bottom = 16.dp)) {
-            val hintColor = MaterialTheme.colorScheme.onSurface
-
             HorizontalDivider(
                 color = MaterialTheme.colorScheme.onSurface,
                 thickness = 12.dp,
@@ -329,11 +333,11 @@ fun IngredientInputForm(
                         singleLine = true,
                         modifier = Modifier
                             .width(96.dp),
-                        textStyle = MaterialTheme.typography.titleMedium.copy(textAlign = TextAlign.End, color = hintColor),
+                        textStyle = MaterialTheme.typography.titleMedium.copy(textAlign = TextAlign.End),
                         //interactionSource = interactionSource,
                         keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
                         keyboardActions = KeyboardActions(onDone  = {}),
-                        colors = TextFieldDefaults.outlinedTextFieldColors(
+                        colors = TextFieldDefaults.colors(
                             //containerColor = MaterialTheme.colorScheme.background,
                             cursorColor = MaterialTheme.colorScheme.primary
                         )
@@ -380,11 +384,11 @@ fun IngredientInputForm(
                         singleLine = true,
                         modifier = Modifier
                             .width(96.dp),
-                        textStyle = MaterialTheme.typography.titleMedium.copy(textAlign = TextAlign.End, color = hintColor),
+                        textStyle = MaterialTheme.typography.titleMedium.copy(textAlign = TextAlign.End),
                         //interactionSource = interactionSource,
                         keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
                         keyboardActions = KeyboardActions(onDone  = {}),
-                        colors = TextFieldDefaults.outlinedTextFieldColors(
+                        colors = TextFieldDefaults.colors(
                             //containerColor = MaterialTheme.colorScheme.background,
                             cursorColor = MaterialTheme.colorScheme.primary
                         )
@@ -431,11 +435,11 @@ fun IngredientInputForm(
                         singleLine = true,
                         modifier = Modifier
                             .width(96.dp),
-                        textStyle = MaterialTheme.typography.titleMedium.copy(textAlign = TextAlign.End, color = hintColor),
+                        textStyle = MaterialTheme.typography.titleMedium.copy(textAlign = TextAlign.End),
                         //interactionSource = interactionSource,
                         keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
                         keyboardActions = KeyboardActions(onDone  = {}),
-                        colors = TextFieldDefaults.outlinedTextFieldColors(
+                        colors = TextFieldDefaults.colors(
                             //containerColor = MaterialTheme.colorScheme.background,
                             cursorColor = MaterialTheme.colorScheme.primary
                         )
@@ -482,11 +486,11 @@ fun IngredientInputForm(
                         singleLine = true,
                         modifier = Modifier
                             .width(96.dp),
-                        textStyle = MaterialTheme.typography.titleMedium.copy(textAlign = TextAlign.End, color = hintColor),
+                        textStyle = MaterialTheme.typography.titleMedium.copy(textAlign = TextAlign.End),
                         //interactionSource = interactionSource,
                         keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
                         keyboardActions = KeyboardActions(onDone  = {}),
-                        colors = TextFieldDefaults.outlinedTextFieldColors(
+                        colors = TextFieldDefaults.colors(
                             //containerColor = MaterialTheme.colorScheme.background,
                             cursorColor = MaterialTheme.colorScheme.primary
                         )

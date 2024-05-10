@@ -45,4 +45,17 @@ class Datasource {
             )),
         )
     }
+
+    fun loadIngredients(): List<Ingredient>{
+        return listOf(
+            Ingredient(1, "Flour", "Makfa", 1000f, 71f, 340f, 12f, 1f, 42f),
+            Ingredient(1, "Flour", "Makfa", 1000f, 71f, 340f, 12f, 1f, 42f),
+            Ingredient(1, "Flour", "Makfa", 1000f, 71f, 340f, 12f, 1f, 42f),
+            Ingredient(1, "Flour", "Makfa", 1000f, 71f, 340f, 12f, 1f, 42f),
+            Ingredient(1, "Flour", "Makfa", 1000f, 71f, 340f, 12f, 1f, 42f),
+            Ingredient(1, "Flour", "Makfa", 1000f, 71f, 340f, 12f, 1f, 42f),
+            Ingredient(1, "Flour", "Makfa", 1000f, 71f, 340f, 12f, 1f, 42f),
+            Ingredient(1, "Flour", "Makfa", 1000f, 71f, 340f, 12f, 1f, 42f)
+        )
+    }
 }

@@ -4,7 +4,7 @@ import com.yanetto.netto.model.Ingredient
 import kotlinx.coroutines.flow.Flow
 
 class OfflineRecipeRepository(private val ingredientDao: IngredientDao) : RecipeRepository {
-    override fun getAllItemsStream(): Flow<List<Ingredient>> = ingredientDao.getAllItems()
+    override fun getAllIngredientsStream(): Flow<List<Ingredient>> = ingredientDao.getAllItems()
 
     override fun getItemStream(id: Int): Flow<Ingredient?> = ingredientDao.getItem(id)
 

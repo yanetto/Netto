@@ -4,7 +4,7 @@ import com.yanetto.netto.model.Ingredient
 import kotlinx.coroutines.flow.Flow
 
 interface RecipeRepository {
-    fun getAllItemsStream(): Flow<List<Ingredient>>
+    fun getAllIngredientsStream(): Flow<List<Ingredient>>
     fun getItemStream(id: Int): Flow<Ingredient?>
     suspend fun insertItem(ingredient: Ingredient)
     suspend fun deleteItem(ingredient: Ingredient)

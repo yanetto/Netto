@@ -1,4 +1,4 @@
-package com.yanetto.netto.ui.listOfRecipesScreen
+package com.yanetto.netto.ui.listOfIngredientsScreen
 
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.Orientation
@@ -15,7 +15,6 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.Card
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedCard
@@ -38,28 +37,26 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.yanetto.netto.R
 import com.yanetto.netto.data.Datasource
-import com.yanetto.netto.model.Recipe
 import com.yanetto.netto.ui.theme.NettoTheme
 import androidx.compose.foundation.lazy.items
-import androidx.compose.material3.CardColors
-import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.HorizontalDivider
+import com.yanetto.netto.model.Ingredient
+import com.yanetto.netto.ui.ingredientScreen.IngredientViewModel
 
 @Composable
-fun ListOfRecipesScreen(
+fun ListOfIngredientsScreen(
     modifier: Modifier = Modifier,
-    onRecipeCardClicked: (Recipe) -> Unit,
-    listOfRecipesViewModel: ListOfRecipesViewModel = viewModel()
+    onIngredientCardClicked: (Ingredient) -> Unit,
+    viewModel: ListOfIngredientsViewModel = viewModel(factory = ListOfIngredientsViewModel.Factory)
 ){
-    val recipeUiState by listOfRecipesViewModel.uiState.collectAsState()
-    val recipeList = Datasource().loadRecipes()
+    val listOfIngredientsUiState by viewModel.ingredientsUiState.collectAsState()
 
     Column (
         modifier = modifier.padding(vertical = 16.dp, horizontal = 8.dp)
     ){
         SearchBar()
 
-        RecipeList(recipeList = recipeList, onRecipeCardClicked = onRecipeCardClicked, modifier = Modifier.fillMaxWidth())
+        IngredientList(ingredientList = listOfIngredientsUiState.ingredientList, onIngredientCardClicked = onIngredientCardClicked, modifier = Modifier.fillMaxWidth())
     }
 }
 
@@ -100,7 +97,7 @@ fun SearchBar(modifier: Modifier = Modifier) {
                 ){
                     if(textValue.text.isEmpty()){
                         Text(
-                            text = stringResource(R.string.search_your_recipes),
+                            text = stringResource(R.string.search_your_ingredients),
                             style = MaterialTheme.typography.headlineSmall,
                             color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.3f),
                             modifier = Modifier.align(Alignment.CenterStart)
@@ -115,25 +112,25 @@ fun SearchBar(modifier: Modifier = Modifier) {
 }
 
 @Composable
-fun RecipeCard(
-    recipe: Recipe,
+fun IngredientCard(
+    ingredient: Ingredient,
     modifier: Modifier = Modifier,
-    onRecipeCardClicked: (Recipe) -> Unit
+    onIngredientCardClicked: (Ingredient) -> Unit
 ){
     Box(
         modifier = modifier
-            .clickable(onClick = { onRecipeCardClicked(recipe) })
+            .clickable(onClick = { onIngredientCardClicked(ingredient) })
             .padding(horizontal = 8.dp)
             .fillMaxWidth()
     ){
         Column (modifier = Modifier.padding(8.dp)){
             Text(
-                text = recipe.name,
+                text = ingredient.name,
                 style = MaterialTheme.typography.headlineSmall,
                 modifier = Modifier.padding(horizontal = 8.dp)
             )
             Text(
-                text = recipe.description,
+                text = ingredient.manufacturer,
                 style = MaterialTheme.typography.titleMedium,
                 modifier = Modifier.padding(horizontal = 8.dp)
             )
@@ -143,7 +140,7 @@ fun RecipeCard(
 }
 
 @Composable
-fun RecipeList(recipeList: List<Recipe>, onRecipeCardClicked: (Recipe) -> Unit, modifier: Modifier = Modifier){
+fun IngredientList(ingredientList: List<Ingredient>, onIngredientCardClicked: (Ingredient) -> Unit, modifier: Modifier = Modifier){
     LazyColumn(
         modifier = modifier
             .fillMaxWidth()
@@ -152,11 +149,11 @@ fun RecipeList(recipeList: List<Recipe>, onRecipeCardClicked: (Recipe) -> Unit, 
                 state = rememberScrollState()
             )
     ){
-        items(recipeList){recipe ->
-            RecipeCard(
-                recipe = recipe,
+        items(ingredientList){ingredient ->
+            IngredientCard(
+                ingredient = ingredient,
                 modifier = Modifier,
-                onRecipeCardClicked = onRecipeCardClicked
+                onIngredientCardClicked = onIngredientCardClicked
             )
         }
     }
@@ -165,12 +162,12 @@ fun RecipeList(recipeList: List<Recipe>, onRecipeCardClicked: (Recipe) -> Unit, 
 
 @Preview
 @Composable
-fun ListOfRecipesScreenPreview(){
+fun ListOfIngredientsScreenPreview(){
     NettoTheme {
         Surface (
             modifier = Modifier.fillMaxSize()
         ){
-            ListOfRecipesScreen(onRecipeCardClicked = {})
+            ListOfIngredientsScreen(onIngredientCardClicked = {})
         }
     }
 }

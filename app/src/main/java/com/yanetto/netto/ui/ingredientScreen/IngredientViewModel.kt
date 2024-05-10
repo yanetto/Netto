@@ -3,6 +3,7 @@ package com.yanetto.netto.ui.ingredientScreen
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
+import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.ViewModelProvider.AndroidViewModelFactory.Companion.APPLICATION_KEY
@@ -10,8 +11,13 @@ import androidx.lifecycle.viewmodel.initializer
 import androidx.lifecycle.viewmodel.viewModelFactory
 import com.yanetto.netto.NettoApplication
 import com.yanetto.netto.data.RecipeRepository
+import com.yanetto.netto.model.Ingredient
+import com.yanetto.netto.model.Recipe
+import kotlinx.coroutines.flow.update
 
-class IngredientViewModel(private val recipeRepository: RecipeRepository) : ViewModel(){
+class IngredientViewModel(
+    private val recipeRepository: RecipeRepository
+) : ViewModel() {
     var ingredientUiState by mutableStateOf(IngredientUiState())
         private set
 
