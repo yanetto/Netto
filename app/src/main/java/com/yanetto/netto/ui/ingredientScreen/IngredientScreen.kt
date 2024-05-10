@@ -2,6 +2,7 @@
 
 package com.yanetto.netto.ui.ingredientScreen
 
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.gestures.Orientation
 import androidx.compose.foundation.gestures.scrollable
 import androidx.compose.foundation.interaction.MutableInteractionSource
@@ -14,17 +15,18 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.material3.Card
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedCard
-import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
@@ -95,11 +97,9 @@ fun IngredientScreen(
 
             Spacer(modifier = Modifier.height(128.dp))
             
-            OutlinedCard (
-                shape = RoundedCornerShape(36.dp),
-                modifier = Modifier.padding(horizontal = 8.dp)
+            Card (
+                shape = RoundedCornerShape(24.dp)
             ){
-                Spacer(modifier = Modifier.height(12.dp))
 
                 IngredientInputForm(
                     ingredientDetails = ingredientViewModel.ingredientUiState.ingredientDetails,
@@ -119,7 +119,7 @@ fun Label(
 ){
     Text(
         text = labelText,
-        style = MaterialTheme.typography.headlineMedium,
+        style = MaterialTheme.typography.headlineLarge,
         modifier = modifier.padding(8.dp)
     )
 }
@@ -132,11 +132,9 @@ fun IngredientInputForm(
 ){
 
     Column (
-        modifier = Modifier.padding(8.dp)
+        modifier = Modifier.padding(horizontal = 16.dp, vertical = 16.dp)
     ) {
         val hintColor = MaterialTheme.colorScheme.onSurface
-        val interactionSource = remember{ MutableInteractionSource() }
-        val color = MaterialTheme.colorScheme.primary
 
         TextField(
             value = ingredientDetails.name,
@@ -155,7 +153,7 @@ fun IngredientInputForm(
             keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Text),
             keyboardActions = KeyboardActions(onDone  = {}),
             colors = TextFieldDefaults.outlinedTextFieldColors(
-                containerColor = MaterialTheme.colorScheme.background,
+                //containerColor = MaterialTheme.colorScheme.background,
                 cursorColor = MaterialTheme.colorScheme.primary
             )
         )
@@ -177,215 +175,341 @@ fun IngredientInputForm(
             keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Text),
             keyboardActions = KeyboardActions(onDone  = {}),
             colors = TextFieldDefaults.outlinedTextFieldColors(
-                containerColor = MaterialTheme.colorScheme.background,
+                //containerColor = MaterialTheme.colorScheme.background,
                 cursorColor = MaterialTheme.colorScheme.primary
             )
         )
 
-        TextField(
-            value = ingredientDetails.weight,
-            onValueChange = { onValueChange(ingredientDetails.copy(weight = it)) },
-            label = {
-                Text(
-                    text = "Weight(g)"
-                )
-            },
-            singleLine = true,
+        Row(
             modifier = Modifier
-                .fillMaxWidth()
-                .padding(vertical = 4.dp),
-            textStyle = MaterialTheme.typography.titleMedium.copy(textAlign = TextAlign.Start, color = hintColor),
-            //interactionSource = interactionSource,
-            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
-            keyboardActions = KeyboardActions(onDone  = {}),
-            colors = TextFieldDefaults.outlinedTextFieldColors(
-                containerColor = MaterialTheme.colorScheme.background,
-                cursorColor = MaterialTheme.colorScheme.primary
+                .padding(vertical = 4.dp)
+                .fillMaxWidth(),
+            horizontalArrangement = Arrangement.SpaceBetween
+        ){
+            Text(
+                text = "Weight",
+                modifier = Modifier.padding(top = 24.dp, start = 16.dp),
+                textAlign = TextAlign.Start
             )
-        )
-
-        TextField(
-            value = ingredientDetails.price,
-            onValueChange = { onValueChange(ingredientDetails.copy(price = it)) },
-            label = {
+            //Spacer(modifier = Modifier.size(128.dp))
+            Row{
+                TextField(
+                    value = ingredientDetails.weight,
+                    onValueChange = { onValueChange(ingredientDetails.copy(weight = it)) },
+                    label = {
+                        Text(
+                            text = "",
+                            textAlign = TextAlign.End
+                        )
+                    },
+                    modifier = Modifier.width(96.dp),
+                    singleLine = true,
+                    textStyle = MaterialTheme.typography.titleMedium.copy(textAlign = TextAlign.End, color = hintColor),
+                    //interactionSource = interactionSource,
+                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
+                    keyboardActions = KeyboardActions(onDone  = {}),
+                    colors = TextFieldDefaults.outlinedTextFieldColors(
+                        //containerColor = MaterialTheme.colorScheme.background,
+                        cursorColor = MaterialTheme.colorScheme.primary
+                    )
+                )
                 Text(
-                    text = "Price(rub)"
+                    text = " g",
+                    modifier = Modifier
+                        .padding(top = 24.dp, end = 16.dp)
+                        .width(36.dp),
+                    textAlign = TextAlign.End
                 )
-            },
-            singleLine = true,
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(vertical = 4.dp),
-            textStyle = MaterialTheme.typography.titleMedium.copy(textAlign = TextAlign.Start, color = hintColor),
-            //interactionSource = interactionSource,
-            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
-            keyboardActions = KeyboardActions(onDone  = {}),
-            colors = TextFieldDefaults.outlinedTextFieldColors(
-                containerColor = MaterialTheme.colorScheme.background,
-                cursorColor = MaterialTheme.colorScheme.primary
-            )
-        )
+            }
 
-
-//
-//        OutlinedTextField(
-//            value = ingredientDetails.weight,
-//            onValueChange = { onValueChange(ingredientDetails.copy(weight = it)) },
-//            //modifier = Modifier.padding(0.dp),
-//            label = {
-//                Text(
-//                    text = "Weight(g)"
-//                )
-//            },
-//            singleLine = true,
-//            modifier = Modifier
-//                .fillMaxWidth()
-//                .padding(vertical = 4.dp),
-//            textStyle = MaterialTheme.typography.titleMedium.copy(textAlign = TextAlign.Start, color = hintColor),
-//            //interactionSource = interactionSource,
-//            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
-//            keyboardActions = KeyboardActions(onDone  = {}),
-//            colors = TextFieldDefaults.outlinedTextFieldColors(
-//                containerColor = MaterialTheme.colorScheme.background,
-//                cursorColor = MaterialTheme.colorScheme.primary,
-//                focusedBorderColor = MaterialTheme.colorScheme.primary
-//            )
-//        )
-//
-//        OutlinedTextField(
-//            value = ingredientDetails.price,
-//            onValueChange = { onValueChange(ingredientDetails.copy(price = it)) },
-//            //modifier = Modifier.padding(0.dp),
-//            label = {
-//                Text(
-//                    text = "Price(rub)"
-//                )
-//            },
-//            singleLine = true,
-//            modifier = Modifier
-//                .fillMaxWidth()
-//                .padding(vertical = 4.dp),
-//            textStyle = MaterialTheme.typography.titleMedium.copy(textAlign = TextAlign.Start, color = hintColor),
-//            //interactionSource = interactionSource,
-//            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
-//            keyboardActions = KeyboardActions(onDone  = {}),
-//            colors = TextFieldDefaults.outlinedTextFieldColors(
-//                containerColor = MaterialTheme.colorScheme.background,
-//                cursorColor = MaterialTheme.colorScheme.primary,
-//                focusedBorderColor = MaterialTheme.colorScheme.primary
-//            )
-//        )
-
-
-
-}
-
-    Text(
-        text = stringResource(id = R.string.nutritional_info),
-        style = MaterialTheme.typography.titleMedium,
-        modifier = modifier.padding(8.dp)
-    )
-
-
-
-        Column (modifier = Modifier.padding(8.dp)) {
-            val hintColor = MaterialTheme.colorScheme.onSurface
-            OutlinedTextField(
-                value = ingredientDetails.energy,
-                onValueChange = { onValueChange(ingredientDetails.copy(energy = it)) },
-                //modifier = Modifier.padding(0.dp),
-                label = {
-                    Text(
-                        text = "Energy(kcal)"
-                    )
-                },
-                singleLine = true,
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(vertical = 4.dp),
-                textStyle = MaterialTheme.typography.titleMedium.copy(textAlign = TextAlign.Start, color = hintColor),
-                //interactionSource = interactionSource,
-                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
-                keyboardActions = KeyboardActions(onDone  = {}),
-                colors = TextFieldDefaults.outlinedTextFieldColors(
-                    containerColor = MaterialTheme.colorScheme.background,
-                    cursorColor = MaterialTheme.colorScheme.primary,
-                    focusedBorderColor = MaterialTheme.colorScheme.primary
-                )
-            )
-
-            OutlinedTextField(
-                value = ingredientDetails.protein,
-                onValueChange = { onValueChange(ingredientDetails.copy(protein = it)) },
-                //modifier = Modifier.padding(0.dp),
-                label = {
-                    Text(
-                        text = "Protein(g)"
-                    )
-                },
-                singleLine = true,
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(vertical = 4.dp),
-                textStyle = MaterialTheme.typography.titleMedium.copy(textAlign = TextAlign.Start, color = hintColor),
-                //interactionSource = interactionSource,
-                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
-                keyboardActions = KeyboardActions(onDone  = {}),
-                colors = TextFieldDefaults.outlinedTextFieldColors(
-                    containerColor = MaterialTheme.colorScheme.background,
-                    cursorColor = MaterialTheme.colorScheme.primary,
-                    focusedBorderColor = MaterialTheme.colorScheme.primary
-                )
-            )
-
-            OutlinedTextField(
-                value = ingredientDetails.fat,
-                onValueChange = { onValueChange(ingredientDetails.copy(fat = it)) },
-                //modifier = Modifier.padding(0.dp),
-                label = {
-                    Text(
-                        text = "Fat(g)"
-                    )
-                },
-                singleLine = true,
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(vertical = 4.dp),
-                textStyle = MaterialTheme.typography.titleMedium.copy(textAlign = TextAlign.Start, color = hintColor),
-                //interactionSource = interactionSource,
-                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
-                keyboardActions = KeyboardActions(onDone  = {}),
-                colors = TextFieldDefaults.outlinedTextFieldColors(
-                    containerColor = MaterialTheme.colorScheme.background,
-                    cursorColor = MaterialTheme.colorScheme.primary,
-                    focusedBorderColor = MaterialTheme.colorScheme.primary
-                )
-            )
-
-            OutlinedTextField(
-                value = ingredientDetails.carbohydrates,
-                onValueChange = { onValueChange(ingredientDetails.copy(carbohydrates = it)) },
-                //modifier = Modifier.padding(0.dp),
-                label = {
-                    Text(
-                        text = "Carbohydrates(g)"
-                    )
-                },
-                singleLine = true,
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(vertical = 4.dp),
-                textStyle = MaterialTheme.typography.titleMedium.copy(textAlign = TextAlign.Start, color = hintColor),
-                //interactionSource = interactionSource,
-                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
-                keyboardActions = KeyboardActions(onDone  = {}),
-                colors = TextFieldDefaults.outlinedTextFieldColors(
-                    containerColor = MaterialTheme.colorScheme.background,
-                    cursorColor = MaterialTheme.colorScheme.primary,
-                    focusedBorderColor = MaterialTheme.colorScheme.primary
-                )
-            )
         }
+
+        Row(
+            modifier = Modifier
+                .padding(vertical = 4.dp)
+                .fillMaxWidth(),
+            horizontalArrangement = Arrangement.SpaceBetween
+        ){
+            Text(
+                text = "Price",
+                modifier = Modifier.padding(top = 24.dp, start = 16.dp),
+                textAlign = TextAlign.Start
+            )
+            //Spacer(modifier = Modifier.size(128.dp))
+            Row{
+                TextField(
+                    value = ingredientDetails.price,
+                    onValueChange = { onValueChange(ingredientDetails.copy(price = it)) },
+                    label = {
+                        Text(
+                            text = ""
+                        )
+                    },
+                    singleLine = true,
+                    modifier = Modifier
+                            .width(96.dp),
+                    textStyle = MaterialTheme.typography.titleMedium.copy(textAlign = TextAlign.End, color = hintColor),
+                    //interactionSource = interactionSource,
+                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
+                    keyboardActions = KeyboardActions(onDone  = {}),
+                    colors = TextFieldDefaults.outlinedTextFieldColors(
+                        //containerColor = MaterialTheme.colorScheme.background,
+                        cursorColor = MaterialTheme.colorScheme.primary
+                    )
+                )
+                Text(
+                    text = " rub",
+                    modifier = Modifier
+                        .padding(top = 24.dp, end = 16.dp)
+                        .width(36.dp),
+                    textAlign = TextAlign.End
+                )
+            }
+        }
+    }
+
+    Card(modifier = Modifier.padding(vertical = 8.dp, horizontal = 16.dp), shape = RoundedCornerShape(4.dp), border = BorderStroke(4.dp, MaterialTheme.colorScheme.onSurface)) {
+        Label(modifier = Modifier.padding(start = 16.dp), labelText =  stringResource(id = R.string.nutritional_info))
+
+        Column (modifier = Modifier.padding(start = 8.dp, end = 8.dp, bottom = 16.dp)) {
+            val hintColor = MaterialTheme.colorScheme.onSurface
+
+            HorizontalDivider(
+                color = MaterialTheme.colorScheme.onSurface,
+                thickness = 12.dp,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(start = 8.dp, end = 8.dp)
+            )
+
+            Row(
+                modifier = Modifier
+                    .padding(vertical = 8.dp)
+                    .fillMaxWidth(),
+                horizontalArrangement = Arrangement.End
+            ) {
+                Text(
+                    text = "Avg. Quantity Per 100g",
+                    style = MaterialTheme.typography.titleMedium,
+                    textAlign = TextAlign.End,
+                    modifier = Modifier.padding(horizontal = 16.dp)
+                )
+            }
+
+            HorizontalDivider(
+                thickness = 8.dp,
+                color = MaterialTheme.colorScheme.onSurface,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(start = 8.dp, end = 8.dp)
+            )
+
+
+            Row(
+                modifier = Modifier
+                    .padding(bottom = 4.dp)
+                    .fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween
+            ){
+                Text(
+                    text = "Energy",
+                    modifier = Modifier.padding(top = 24.dp, start = 16.dp),
+                    textAlign = TextAlign.Start
+                )
+                //Spacer(modifier = Modifier.size(128.dp))
+                Row{
+                    TextField(
+                        value = ingredientDetails.energy,
+                        onValueChange = { onValueChange(ingredientDetails.copy(energy = it)) },
+                        label = {
+                            Text(
+                                text = ""
+                            )
+                        },
+                        singleLine = true,
+                        modifier = Modifier
+                            .width(96.dp),
+                        textStyle = MaterialTheme.typography.titleMedium.copy(textAlign = TextAlign.End, color = hintColor),
+                        //interactionSource = interactionSource,
+                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
+                        keyboardActions = KeyboardActions(onDone  = {}),
+                        colors = TextFieldDefaults.outlinedTextFieldColors(
+                            //containerColor = MaterialTheme.colorScheme.background,
+                            cursorColor = MaterialTheme.colorScheme.primary
+                        )
+                    )
+                    Text(
+                        text = " kcal",
+                        modifier = Modifier
+                            .padding(top = 24.dp, end = 16.dp)
+                            .width(36.dp),
+                        textAlign = TextAlign.End
+                    )
+                }
+            }
+
+            HorizontalDivider(
+                thickness = 2.dp,
+                color = MaterialTheme.colorScheme.onSurface,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(start = 8.dp, end = 8.dp)
+            )
+
+            Row(
+                modifier = Modifier
+                    .padding(bottom = 4.dp)
+                    .fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween
+            ){
+                Text(
+                    text = "Protein",
+                    modifier = Modifier.padding(top = 24.dp, start = 16.dp),
+                    textAlign = TextAlign.Start
+                )
+                //Spacer(modifier = Modifier.size(128.dp))
+                Row{
+                    TextField(
+                        value = ingredientDetails.protein,
+                        onValueChange = { onValueChange(ingredientDetails.copy(protein = it)) },
+                        label = {
+                            Text(
+                                text = ""
+                            )
+                        },
+                        singleLine = true,
+                        modifier = Modifier
+                            .width(96.dp),
+                        textStyle = MaterialTheme.typography.titleMedium.copy(textAlign = TextAlign.End, color = hintColor),
+                        //interactionSource = interactionSource,
+                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
+                        keyboardActions = KeyboardActions(onDone  = {}),
+                        colors = TextFieldDefaults.outlinedTextFieldColors(
+                            //containerColor = MaterialTheme.colorScheme.background,
+                            cursorColor = MaterialTheme.colorScheme.primary
+                        )
+                    )
+                    Text(
+                        text = " g",
+                        modifier = Modifier
+                            .padding(top = 24.dp, end = 16.dp)
+                            .width(36.dp),
+                        textAlign = TextAlign.End
+                    )
+                }
+            }
+
+            HorizontalDivider(
+                thickness = 2.dp,
+                color = MaterialTheme.colorScheme.onSurface,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(start = 8.dp, end = 8.dp)
+            )
+
+            Row(
+                modifier = Modifier
+                    .padding(bottom = 4.dp)
+                    .fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween
+            ){
+                Text(
+                    text = "Fat",
+                    modifier = Modifier.padding(top = 24.dp, start = 16.dp),
+                    textAlign = TextAlign.Start
+                )
+                //Spacer(modifier = Modifier.size(128.dp))
+                Row{
+                    TextField(
+                        value = ingredientDetails.fat,
+                        onValueChange = { onValueChange(ingredientDetails.copy(fat = it)) },
+                        label = {
+                            Text(
+                                text = ""
+                            )
+                        },
+                        singleLine = true,
+                        modifier = Modifier
+                            .width(96.dp),
+                        textStyle = MaterialTheme.typography.titleMedium.copy(textAlign = TextAlign.End, color = hintColor),
+                        //interactionSource = interactionSource,
+                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
+                        keyboardActions = KeyboardActions(onDone  = {}),
+                        colors = TextFieldDefaults.outlinedTextFieldColors(
+                            //containerColor = MaterialTheme.colorScheme.background,
+                            cursorColor = MaterialTheme.colorScheme.primary
+                        )
+                    )
+                    Text(
+                        text = " g",
+                        modifier = Modifier
+                            .padding(top = 24.dp, end = 16.dp)
+                            .width(36.dp),
+                        textAlign = TextAlign.End
+                    )
+                }
+            }
+
+            HorizontalDivider(
+                thickness = 2.dp,
+                color = MaterialTheme.colorScheme.onSurface,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(start = 8.dp, end = 8.dp)
+            )
+
+            Row(
+                modifier = Modifier
+                    .padding(bottom = 4.dp)
+                    .fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween
+            ){
+                Text(
+                    text = "Carbohydrates",
+                    modifier = Modifier.padding(top = 24.dp, start = 16.dp),
+                    textAlign = TextAlign.Start
+                )
+                //Spacer(modifier = Modifier.size(128.dp))
+                Row{
+                    TextField(
+                        value = ingredientDetails.carbohydrates,
+                        onValueChange = { onValueChange(ingredientDetails.copy(carbohydrates = it)) },
+                        label = {
+                            Text(
+                                text = ""
+                            )
+                        },
+                        singleLine = true,
+                        modifier = Modifier
+                            .width(96.dp),
+                        textStyle = MaterialTheme.typography.titleMedium.copy(textAlign = TextAlign.End, color = hintColor),
+                        //interactionSource = interactionSource,
+                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
+                        keyboardActions = KeyboardActions(onDone  = {}),
+                        colors = TextFieldDefaults.outlinedTextFieldColors(
+                            //containerColor = MaterialTheme.colorScheme.background,
+                            cursorColor = MaterialTheme.colorScheme.primary
+                        )
+                    )
+                    Text(
+                        text = " g",
+                        modifier = Modifier
+                            .padding(top = 24.dp, end = 16.dp)
+                            .width(36.dp),
+                        textAlign = TextAlign.End
+                    )
+                }
+            }
+//        HorizontalDivider(
+//            thickness = 2.dp,
+//            color = MaterialTheme.colorScheme.onSurface,
+//            modifier = Modifier
+//                .fillMaxWidth()
+//                .padding(start = 8.dp, end = 8.dp)
+//        )
+        }
+
+    }
 
 }
 

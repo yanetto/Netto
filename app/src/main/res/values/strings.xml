@@ -22,4 +22,5 @@
     <string name="search_your_recipes">Search your recipes</string>
     <string name="name">Name</string>
     <string name="manufacturer">Manufacturer</string>
+    <string name="per_100g">Per 100g</string>
 </resources>
