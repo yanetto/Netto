@@ -24,4 +24,6 @@
     <string name="manufacturer">Manufacturer</string>
     <string name="per_100g">Per 100g</string>
     <string name="search_your_ingredients">Search your ingredients</string>
+    <string name="weight_g">Weight(g)</string>
+    <string name="price_rub">Price(rub)</string>
 </resources>

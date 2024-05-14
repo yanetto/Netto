@@ -44,6 +44,7 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.CardColors
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.HorizontalDivider
+import androidx.compose.material3.IconButton
 
 @Composable
 fun ListOfRecipesScreen(
@@ -55,7 +56,7 @@ fun ListOfRecipesScreen(
     val recipeList = Datasource().loadRecipes()
 
     Column (
-        modifier = modifier.padding(vertical = 16.dp, horizontal = 8.dp)
+        modifier = modifier.padding(top = 8.dp, start = 8.dp, end = 8.dp)
     ){
         SearchBar()
 
@@ -65,51 +66,61 @@ fun ListOfRecipesScreen(
 
 @Composable
 fun SearchBar(modifier: Modifier = Modifier) {
-    OutlinedCard(
-        shape = ButtonDefaults.shape,
-        modifier = modifier
-            .fillMaxWidth()
-            .padding(8.dp)
+    Row(
+        modifier = modifier.fillMaxWidth()
     ) {
-        Row(
+        OutlinedCard(
+            shape = ButtonDefaults.shape,
             modifier = Modifier
-                .padding(start = 8.dp, end = 8.dp)
-                .fillMaxWidth(),
-            verticalAlignment = Alignment.CenterVertically
+                .padding(vertical = 8.dp)
+                .weight(1f)
         ) {
+            Row(
+                modifier = Modifier
+                    .padding(start = 8.dp, end = 8.dp),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Icon(
+                    painter = painterResource(id = R.drawable.search_black_36dp),
+                    contentDescription = null,
+                    modifier = Modifier.padding(vertical = 8.dp),
+                    tint = MaterialTheme.colorScheme.primary
+                )
+
+                Spacer(modifier = Modifier.size(8.dp))
+
+                var textValue by remember{ mutableStateOf(TextFieldValue("")) }
+
+                BasicTextField(
+                    value = textValue,
+                    onValueChange = {},
+                    singleLine = true,
+                    textStyle = MaterialTheme.typography.headlineSmall.copy(textAlign = TextAlign.Start, color = MaterialTheme.colorScheme.onSurface),
+                    modifier = Modifier
+                ){
+                    Box(
+                        modifier = Modifier
+                    ){
+                        if(textValue.text.isEmpty()){
+                            Text(
+                                text = stringResource(R.string.search_your_recipes),
+                                style = MaterialTheme.typography.headlineSmall,
+                                color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.3f),
+                                modifier = Modifier.align(Alignment.CenterStart)
+                            )
+                        }
+                        it()
+                    }
+                }
+            }
+        }
+        IconButton(onClick = { /*TODO*/ }, modifier = Modifier.size(54.dp).align(Alignment.CenterVertically)) {
             Icon(
-                painter = painterResource(id = R.drawable.search_black_36dp),
+                painter = painterResource(id = R.drawable.add_40dp_fill0_wght400_grad0_opsz40),
                 contentDescription = null,
                 modifier = Modifier.padding(vertical = 8.dp),
                 tint = MaterialTheme.colorScheme.primary
             )
-
-            Spacer(modifier = Modifier.size(8.dp))
-
-            var textValue by remember{ mutableStateOf(TextFieldValue("")) }
-
-            BasicTextField(
-                value = textValue,
-                onValueChange = {},
-                singleLine = true,
-                textStyle = MaterialTheme.typography.headlineSmall.copy(textAlign = TextAlign.Start, color = MaterialTheme.colorScheme.onSurface),
-                modifier = Modifier.fillMaxWidth()
-            ){
-                Box(
-                    modifier = Modifier.fillMaxWidth()
-                ){
-                    if(textValue.text.isEmpty()){
-                        Text(
-                            text = stringResource(R.string.search_your_recipes),
-                            style = MaterialTheme.typography.headlineSmall,
-                            color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.3f),
-                            modifier = Modifier.align(Alignment.CenterStart)
-                        )
-                    }
-                    it()
-                }
-            }
-
         }
     }
 }

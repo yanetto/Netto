@@ -121,12 +121,12 @@ fun RecipeScreen(
             Spacer(modifier = Modifier.padding(4.dp))
             val price = recipeUiState.currentRecipe.totalPrice * recipeUiState.newWeight/recipeUiState.currentRecipe.totalWeight
             PriceAndWeightLabels(
-                label = stringResource(R.string.price),
-                number = stringResource(id = R.string.price_value, price),
-            )
-            PriceAndWeightLabels(
                 label = stringResource(R.string.weight),
                 number = stringResource(R.string.new_weight_g, recipeUiState.newWeight),
+            )
+            PriceAndWeightLabels(
+                label = stringResource(R.string.price),
+                number = stringResource(id = R.string.price_value, price),
             )
             Spacer(
                 modifier = modifier
@@ -201,7 +201,7 @@ fun Label(
     Text(
         text = labelText,
         style = MaterialTheme.typography.headlineMedium,
-        modifier = modifier.padding(8.dp)
+        modifier = modifier.padding(top = 8.dp, start = 8.dp, end = 8.dp)
     )
 }
 
