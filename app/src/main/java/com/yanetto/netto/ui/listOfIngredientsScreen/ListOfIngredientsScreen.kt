@@ -36,13 +36,11 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.yanetto.netto.R
-import com.yanetto.netto.data.Datasource
 import com.yanetto.netto.ui.theme.NettoTheme
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.IconButton
 import com.yanetto.netto.model.Ingredient
-import com.yanetto.netto.ui.ingredientScreen.IngredientViewModel
 
 @Composable
 fun ListOfIngredientsScreen(
