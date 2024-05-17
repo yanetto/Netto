@@ -1,4 +1,4 @@
-package com.yanetto.netto.ui.listOfIngredientsScreen;
+package com.yanetto.netto.ui.listOfIngredientsScreen
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
@@ -7,15 +7,14 @@ import androidx.lifecycle.viewmodel.initializer
 import androidx.lifecycle.viewmodel.viewModelFactory
 import com.yanetto.netto.NettoApplication
 import com.yanetto.netto.data.RecipeRepository
-import com.yanetto.netto.ui.ingredientScreen.IngredientViewModel
-import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
-import kotlinx.coroutines.flow.StateFlow;
-import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 
-class ListOfIngredientsViewModel(recipeRepository: RecipeRepository): ViewModel() {
+class ListOfIngredientsViewModel(
+    private val recipeRepository: RecipeRepository
+): ViewModel() {
     companion object {
         val Factory: ViewModelProvider.Factory = viewModelFactory {
             initializer {
@@ -34,4 +33,7 @@ class ListOfIngredientsViewModel(recipeRepository: RecipeRepository): ViewModel(
                 initialValue = ListOfIngredientsUiState()
             )
 
+    suspend fun deleteIngredient(id: Int){
+        recipeRepository.deleteIngredient(recipeRepository.getIngredient(id))
+    }
 }

@@ -11,6 +11,7 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -30,8 +31,6 @@ import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedTextField
-import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -43,7 +42,6 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.res.painterResource
@@ -58,15 +56,24 @@ import com.yanetto.netto.R
 import com.yanetto.netto.ui.theme.NettoTheme
 import kotlinx.coroutines.launch
 
+
+object IngredientDetailsDestination {
+    const val route = "IngredientScreen"
+    const val ingredientIdArg = "itemId"
+    const val routeWithArgs = "$route/{$ingredientIdArg}"
+}
+
 @Composable
 fun IngredientScreen(
     modifier: Modifier = Modifier,
+    navigateBack: () -> Unit = {},
     ingredientViewModel: IngredientViewModel = viewModel(factory = IngredientViewModel.Factory),
 ){
     val coroutineScope = rememberCoroutineScope()
+    val uiState = ingredientViewModel.ingredientUiState
 
     Column {
-        Row (modifier = Modifier
+        Row (modifier = modifier
             .fillMaxWidth()
             .padding(top = 8.dp, start = 8.dp, end = 8.dp),
             horizontalArrangement = Arrangement.SpaceBetween
@@ -86,7 +93,8 @@ fun IngredientScreen(
 
             IconButton(
                 enabled = true,
-                onClick = { coroutineScope.launch {ingredientViewModel.saveItem()} },
+                onClick = { coroutineScope.launch {ingredientViewModel.saveItem()}
+                          navigateBack()},
                 modifier = Modifier
                     .size(48.dp)
             ) {
@@ -108,32 +116,87 @@ fun IngredientScreen(
                 )
         ){
             item {
-                Spacer(modifier = Modifier.height(128.dp))
+                Spacer(modifier = Modifier.height(224.dp))
                 ElevatedCard (
+                    modifier = Modifier.fillMaxHeight(),
                     shape = RoundedCornerShape(24.dp),
                     elevation = CardDefaults.elevatedCardElevation(defaultElevation = 12.dp)
                 ){
-                    IngredientInputForm(
-                        ingredientDetails = ingredientViewModel.ingredientUiState.ingredientDetails,
+                    IngredientNameLabel(
+                        modifier = Modifier.padding(vertical = 8.dp, horizontal = 8.dp),
+                        ingredientDetails = uiState.ingredientDetails,
                         onValueChange = ingredientViewModel::updateUiState
                     )
-                    Label(modifier = Modifier.padding(horizontal = 8.dp), labelText = stringResource(id = R.string.nutritional_info))
-                    NutritionalIngredientItems(modifier = Modifier.padding(horizontal = 8.dp), param = stringResource(R.string.energy), info = " kcal", ingredientDetail = ingredientViewModel.ingredientUiState.ingredientDetails.energy, onValueChange = ingredientViewModel::updateEnergy)
-                    NutritionalIngredientItems(modifier = Modifier.padding(horizontal = 8.dp), param = stringResource(R.string.protein), info = " g", ingredientDetail = ingredientViewModel.ingredientUiState.ingredientDetails.protein, onValueChange = ingredientViewModel::updateProtein)
-                    NutritionalIngredientItems(modifier = Modifier.padding(horizontal = 8.dp), param = stringResource(R.string.fat), info = " g", ingredientDetail = ingredientViewModel.ingredientUiState.ingredientDetails.fat, onValueChange = ingredientViewModel::updateFat)
-                    NutritionalIngredientItems(modifier = Modifier.padding(horizontal = 8.dp), param = stringResource(R.string.carbohydrates), info = " g", ingredientDetail = ingredientViewModel.ingredientUiState.ingredientDetails.carbohydrates, onValueChange = ingredientViewModel::updateCarbohydrates)
+
                     HorizontalDivider(
                         modifier = Modifier
-                            .padding(start = 8.dp, end = 8.dp, bottom = 8.dp)
+                            .padding(start = 16.dp, end = 16.dp, bottom = 8.dp)
                             .fillMaxWidth()
                     )
+
+                    IngredientManufacturerLabel(
+                        modifier = Modifier.padding(horizontal = 8.dp),
+                        ingredientDetails = uiState.ingredientDetails,
+                        onValueChange = ingredientViewModel::updateUiState
+                    )
+
+                    Spacer(modifier = Modifier.height(16.dp))
+
+                    Label(modifier = Modifier.padding(horizontal = 8.dp), labelText = stringResource(id = R.string.nutritional_info))
+
+                    NutritionalIngredientItems(
+                        modifier = Modifier.padding(horizontal = 8.dp),
+                        param = stringResource(R.string.energy), info = stringResource(R.string._kcal),
+                        ingredientDetail = uiState.ingredientDetails.energy,
+                        onValueChange = ingredientViewModel::updateEnergy
+                    )
+
+                    NutritionalIngredientItems(
+                        modifier = Modifier.padding(horizontal = 8.dp),
+                        param = stringResource(R.string.protein), info = stringResource(R.string._g),
+                        ingredientDetail = uiState.ingredientDetails.protein,
+                        onValueChange = ingredientViewModel::updateProtein
+                    )
+
+                    NutritionalIngredientItems(
+                        modifier = Modifier.padding(horizontal = 8.dp),
+                        param = stringResource(R.string.fat), info = stringResource(R.string._g),
+                        ingredientDetail = uiState.ingredientDetails.fat,
+                        onValueChange = ingredientViewModel::updateFat
+                    )
+
+                    NutritionalIngredientItems(
+                        modifier = Modifier.padding(horizontal = 8.dp),
+                        param = stringResource(R.string.carbohydrates), info = stringResource(R.string._g),
+                        ingredientDetail = uiState.ingredientDetails.carbohydrates,
+                        onValueChange = ingredientViewModel::updateCarbohydrates
+                    )
+
+                    HorizontalDivider(
+                        modifier = Modifier
+                            .padding(start = 16.dp, end = 16.dp, bottom = 8.dp)
+                            .fillMaxWidth()
+                    )
+
+                    WeightAndPriceItems(
+                        modifier = Modifier.padding(horizontal = 8.dp),
+                        label = stringResource(id = R.string.weight), info = stringResource(R.string._g),
+                        ingredientDetail = uiState.ingredientDetails.weight,
+                        onValueChange = ingredientViewModel::updateWeight
+                    )
+
+                    WeightAndPriceItems(
+                        modifier = Modifier.padding(horizontal = 8.dp),
+                        label = stringResource(id = R.string.price), info = stringResource(R.string._rub),
+                        ingredientDetail = uiState.ingredientDetails.price,
+                        onValueChange = ingredientViewModel::updatePrice
+                    )
+                    Spacer(modifier = Modifier.height(16.dp))
                 }
 
             }
         }
     }
-
-    
 }
 
 @Composable
@@ -149,112 +212,179 @@ fun Label(
 }
 
 @Composable
-fun IngredientInputForm(
+fun IngredientManufacturerLabel(
     modifier: Modifier = Modifier,
     ingredientDetails: IngredientDetails,
     onValueChange: (IngredientDetails) -> Unit = {}
 ){
+    val focusManager = LocalFocusManager.current
+    var textValue by remember{ mutableStateOf(TextFieldValue("")) }
+    val interactionSource = remember{ MutableInteractionSource() }
+    val isFocused = interactionSource.collectIsFocusedAsState()
+    val valueHint = ingredientDetails.manufacturer
 
-    Column (
-        modifier = modifier.padding(horizontal = 16.dp, vertical = 16.dp)
-    ) {
+    LaunchedEffect(isFocused.value){
+        if(!isFocused.value) textValue = TextFieldValue("")
+    }
 
-        OutlinedTextField(
-            value = ingredientDetails.name,
-            onValueChange = { onValueChange(ingredientDetails.copy(name = it)) },
-            label = {
+    val color = MaterialTheme.colorScheme.onSurface
+    val hintColor = if(isFocused.value) MaterialTheme.colorScheme.onSurface.copy(alpha = 0.3f) else MaterialTheme.colorScheme.onSurface
+
+    BasicTextField(
+        value = textValue,
+        onValueChange = {
+            textValue = it
+            onValueChange(ingredientDetails.copy(manufacturer = it.text)) },
+        singleLine = true,
+        modifier = modifier.padding(8.dp),
+        textStyle = MaterialTheme.typography.titleLarge.copy(textAlign = TextAlign.Start, color = color),
+        interactionSource = interactionSource,
+        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Text),
+        keyboardActions = KeyboardActions(onDone  = {
+            focusManager.clearFocus()
+        }),
+        cursorBrush = SolidColor(color)
+    ){
+        Box(
+            modifier = Modifier.fillMaxWidth()
+        ){
+            if(textValue.text.isEmpty()){
                 Text(
-                    text = stringResource(id = R.string.name)
+                    text = valueHint,
+                    style = MaterialTheme.typography.titleLarge,
+                    color = hintColor,
+                    modifier = Modifier.align(Alignment.CenterStart)
                 )
-            },
-            singleLine = true,
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(vertical = 4.dp),
-            textStyle = MaterialTheme.typography.titleMedium.copy(textAlign = TextAlign.Start),
-            //interactionSource = interactionSource,
-            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Text),
-            keyboardActions = KeyboardActions(onDone  = {}),
-            colors = OutlinedTextFieldDefaults.colors(
-                unfocusedContainerColor = Color.Transparent,
-                focusedContainerColor = Color.Transparent,
-                cursorColor = MaterialTheme.colorScheme.primary
-            )
-        )
-
-        OutlinedTextField(
-            value = ingredientDetails.manufacturer,
-            onValueChange = { onValueChange(ingredientDetails.copy(manufacturer = it)) },
-            label = {
-                Text(
-                    text = stringResource(id = R.string.manufacturer)
-                )
-            },
-            singleLine = true,
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(vertical = 4.dp),
-            textStyle = MaterialTheme.typography.titleMedium.copy(textAlign = TextAlign.Start),
-            //interactionSource = interactionSource,
-            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Text),
-            keyboardActions = KeyboardActions(onDone  = {}),
-            colors = OutlinedTextFieldDefaults.colors(
-                cursorColor = MaterialTheme.colorScheme.primary,
-                focusedContainerColor = Color.Transparent,
-                unfocusedContainerColor = Color.Transparent
-            )
-        )
-
-        OutlinedTextField(
-            value = ingredientDetails.weight,
-            onValueChange = { onValueChange(ingredientDetails.copy(weight = it)) },
-            label = {
-                Text(
-                    text = stringResource(R.string.weight_g),
-                    textAlign = TextAlign.End
-                )
-            },
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(vertical = 4.dp),
-            singleLine = true,
-            textStyle = MaterialTheme.typography.titleMedium.copy(textAlign = TextAlign.Start),
-            //interactionSource = interactionSource,
-            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
-            keyboardActions = KeyboardActions(onDone  = {}),
-            colors = OutlinedTextFieldDefaults.colors(
-                focusedContainerColor = Color.Transparent,
-                unfocusedContainerColor = Color.Transparent,
-                cursorColor = MaterialTheme.colorScheme.primary
-            )
-        )
-
-        OutlinedTextField(
-            value = ingredientDetails.price,
-            onValueChange = { onValueChange(ingredientDetails.copy(price = it)) },
-            label = {
-                Text(
-                    text = stringResource(R.string.price_rub)
-                )
-            },
-            singleLine = true,
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(vertical = 4.dp),
-            textStyle = MaterialTheme.typography.titleMedium.copy(textAlign = TextAlign.Start),
-            //interactionSource = interactionSource,
-            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
-            keyboardActions = KeyboardActions(onDone  = {}),
-            colors = OutlinedTextFieldDefaults.colors(
-                focusedContainerColor = Color.Transparent,
-                unfocusedContainerColor = Color.Transparent,
-                cursorColor = MaterialTheme.colorScheme.primary
-            )
-        )
-
+            }
+            it()
+        }
     }
 }
 
+@Composable
+fun IngredientNameLabel(
+    modifier: Modifier = Modifier,
+    ingredientDetails: IngredientDetails,
+    onValueChange: (IngredientDetails) -> Unit = {}
+){
+    val focusManager = LocalFocusManager.current
+    var textValue by remember{ mutableStateOf(TextFieldValue("")) }
+    val interactionSource = remember{ MutableInteractionSource() }
+    val isFocused = interactionSource.collectIsFocusedAsState()
+    val valueHint = ingredientDetails.name
+
+    LaunchedEffect(isFocused.value){
+        if(!isFocused.value) textValue = TextFieldValue("")
+    }
+
+    val color = MaterialTheme.colorScheme.onSurface
+    val hintColor = if(isFocused.value) MaterialTheme.colorScheme.onSurface.copy(alpha = 0.3f) else MaterialTheme.colorScheme.onSurface
+
+    BasicTextField(
+        value = textValue,
+        onValueChange = {
+            textValue = it
+            onValueChange(ingredientDetails.copy(name = it.text)) },
+        singleLine = true,
+        modifier = modifier.padding(8.dp),
+        textStyle = MaterialTheme.typography.displaySmall.copy(textAlign = TextAlign.Start, color = color),
+        interactionSource = interactionSource,
+        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Text),
+        keyboardActions = KeyboardActions(onDone  = {
+            focusManager.clearFocus()
+        }),
+        cursorBrush = SolidColor(color)
+    ){
+        Box(
+            modifier = Modifier.fillMaxWidth()
+        ){
+            if(textValue.text.isEmpty()){
+                Text(
+                    text = valueHint,
+                    style = MaterialTheme.typography.displaySmall,
+                    color = hintColor,
+                    modifier = Modifier.align(Alignment.CenterStart)
+                )
+            }
+            it()
+        }
+    }
+}
+
+@Composable
+fun WeightAndPriceItems(
+    modifier: Modifier = Modifier,
+    label: String,
+    info: String,
+    ingredientDetail: String,
+    onValueChange: (String) -> Unit = {}
+){
+    val focusManager = LocalFocusManager.current
+    Row(
+        modifier = modifier
+            .fillMaxWidth()
+            .padding(horizontal = 8.dp, vertical = 4.dp),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        Text(
+            text = label,
+            textAlign = TextAlign.Start,
+            style = MaterialTheme.typography.headlineMedium,
+            modifier = Modifier.weight(2f)
+        )
+
+        Spacer(modifier = Modifier.size(16.dp))
+
+        var textValue by remember{ mutableStateOf(TextFieldValue("")) }
+        val interactionSource = remember{ MutableInteractionSource() }
+        val isFocused = interactionSource.collectIsFocusedAsState()
+        val valueHint = ingredientDetail
+
+        LaunchedEffect(isFocused.value){
+            if(!isFocused.value) textValue = TextFieldValue("")
+        }
+
+        val color = if(textValue.text.toFloatOrNull() != null || textValue.text.isEmpty()) MaterialTheme.colorScheme.onSurface else MaterialTheme.colorScheme.errorContainer
+        val hintColor = if(isFocused.value) MaterialTheme.colorScheme.onSurface.copy(alpha = 0.3f) else MaterialTheme.colorScheme.onSurface
+
+        BasicTextField(
+            value = textValue,
+            onValueChange = {
+                textValue = it
+                onValueChange(it.text) },
+            singleLine = true,
+            modifier = Modifier
+                .weight(1f),
+            textStyle = MaterialTheme.typography.headlineMedium.copy(textAlign = TextAlign.End, color = color),
+            interactionSource = interactionSource,
+            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
+            keyboardActions = KeyboardActions(onDone  = {
+                focusManager.clearFocus()
+            }),
+            cursorBrush = SolidColor(color)
+        ){
+            Box(
+                modifier = Modifier.fillMaxWidth()
+            ){
+                if(textValue.text.isEmpty()){
+                    Text(
+                        text = valueHint,
+                        style = MaterialTheme.typography.headlineMedium,
+                        color = hintColor,
+                        modifier = Modifier.align(Alignment.CenterEnd)
+                    )
+                }
+                it()
+            }
+        }
+
+        Text(
+            text = info,
+            style = MaterialTheme.typography.headlineMedium,
+            color = color
+        )
+    }
+}
 
 
 @Composable
@@ -290,7 +420,7 @@ fun NutritionalIngredientItems(
         var textValue by remember{ mutableStateOf(TextFieldValue("")) }
         val interactionSource = remember{ MutableInteractionSource() }
         val isFocused = interactionSource.collectIsFocusedAsState()
-        val valueHint = if (ingredientDetail == "") "0.0" else ingredientDetail
+        val valueHint = ingredientDetail
 
         LaunchedEffect(isFocused.value){
             if(!isFocused.value) textValue = TextFieldValue("")

@@ -3,6 +3,8 @@ package com.yanetto.netto.ui.listOfRecipesScreen
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.Orientation
 import androidx.compose.foundation.gestures.scrollable
+import androidx.compose.foundation.interaction.MutableInteractionSource
+import androidx.compose.foundation.interaction.collectIsFocusedAsState
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -40,8 +42,14 @@ import com.yanetto.netto.data.Datasource
 import com.yanetto.netto.model.Recipe
 import com.yanetto.netto.ui.theme.NettoTheme
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.text.KeyboardActions
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.IconButton
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.ui.graphics.SolidColor
+import androidx.compose.ui.platform.LocalFocusManager
+import androidx.compose.ui.text.input.KeyboardType
 
 @Composable
 fun ListOfRecipesScreen(
@@ -64,7 +72,7 @@ fun ListOfRecipesScreen(
 @Composable
 fun SearchBar(modifier: Modifier = Modifier) {
     Row(
-        modifier = modifier.fillMaxWidth()
+        modifier = modifier.fillMaxWidth().padding(start = 8.dp)
     ) {
         OutlinedCard(
             shape = ButtonDefaults.shape,
@@ -86,23 +94,39 @@ fun SearchBar(modifier: Modifier = Modifier) {
 
                 Spacer(modifier = Modifier.size(8.dp))
 
+                val focusManager = LocalFocusManager.current
                 var textValue by remember{ mutableStateOf(TextFieldValue("")) }
+                val interactionSource = remember{ MutableInteractionSource() }
+                val isFocused = interactionSource.collectIsFocusedAsState()
+                val valueHint = stringResource(id = R.string.search_your_recipes)
+
+                LaunchedEffect(isFocused.value){
+                    if(!isFocused.value) textValue = TextFieldValue("")
+                }
+
+                val color = MaterialTheme.colorScheme.onSurface
+                val hintColor = if(isFocused.value) MaterialTheme.colorScheme.onSurface.copy(alpha = 0.3f) else MaterialTheme.colorScheme.onSurface.copy(alpha = 0.8f)
 
                 BasicTextField(
                     value = textValue,
-                    onValueChange = {},
+                    onValueChange = { textValue = it },
                     singleLine = true,
-                    textStyle = MaterialTheme.typography.headlineSmall.copy(textAlign = TextAlign.Start, color = MaterialTheme.colorScheme.onSurface),
-                    modifier = Modifier
+                    textStyle = MaterialTheme.typography.headlineSmall.copy(textAlign = TextAlign.Start, color = color),
+                    interactionSource = interactionSource,
+                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Text),
+                    keyboardActions = KeyboardActions(onDone  = {
+                        focusManager.clearFocus()
+                    }),
+                    cursorBrush = SolidColor(color)
                 ){
                     Box(
                         modifier = Modifier
                     ){
                         if(textValue.text.isEmpty()){
                             Text(
-                                text = stringResource(R.string.search_your_recipes),
+                                text = valueHint,
                                 style = MaterialTheme.typography.headlineSmall,
-                                color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.3f),
+                                color = hintColor,
                                 modifier = Modifier.align(Alignment.CenterStart)
                             )
                         }

@@ -73,7 +73,7 @@ fun RecipeScreen(
             )
     ) {
         item{
-            NameAndDescription(
+            NameAndDescriptionLabels(
                 recipeName = recipeUiState.currentRecipe.name,
                 recipeDescription = recipeUiState.currentRecipe.description
             )
@@ -206,7 +206,7 @@ fun Label(
 }
 
 @Composable
-fun NameAndDescription(
+fun NameAndDescriptionLabels(
     modifier: Modifier = Modifier,
     recipeName: String,
     recipeDescription: String
@@ -302,7 +302,7 @@ fun PriceAndWeightLabels(
     Row(
         modifier = modifier
             .fillMaxWidth()
-            .padding(4.dp),
+            .padding(vertical = 4.dp, horizontal = 8.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
         Text(

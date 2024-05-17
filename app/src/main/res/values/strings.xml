@@ -26,4 +26,7 @@
     <string name="search_your_ingredients">Search your ingredients</string>
     <string name="weight_g">Weight(g)</string>
     <string name="price_rub">Price(rub)</string>
+    <string name="_g">" g"</string>
+    <string name="_rub">" rub"</string>
+    <string name="_kcal">" kcal"</string>
 </resources>

@@ -11,14 +11,14 @@ val recipe = Recipe(
     3,
     listOf(
         IngredientInRecipe(
-            Ingredient(2,"Red wine", "Shato Taman", 1000f, 10f,  30f, 0f, 0f, 7.5f),
+            Ingredient(2,"Red wine", "Shato Taman", 1000f, 2000f,  30f, 0f, 0f, 7.5f),
             100f
         ),
         IngredientInRecipe(
-            Ingredient(3,"Coarse corn", "Super Corn", 300f, 10f, 30f, 20f, 5f, 7.5f),
+            Ingredient(3,"Coarse corn", "Super Corn", 300f, 200f, 30f, 20f, 5f, 7.5f),
             37.5f
         ),
-        IngredientInRecipe(Ingredient(4,"Shallots", "Best lots", 100f, 10f, 30f, 1f, 1f, 7.5f), 150f)
+        IngredientInRecipe(Ingredient(4,"Shallots", "Best lots", 100f, 350f, 30f, 1f, 1f, 7.5f), 150f)
     )
 )
 data class RecipeUiState (

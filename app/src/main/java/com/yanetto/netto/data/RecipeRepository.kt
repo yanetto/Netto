@@ -5,8 +5,10 @@ import kotlinx.coroutines.flow.Flow
 
 interface RecipeRepository {
     fun getAllIngredientsStream(): Flow<List<Ingredient>>
-    fun getItemStream(id: Int): Flow<Ingredient?>
-    suspend fun insertItem(ingredient: Ingredient)
-    suspend fun deleteItem(ingredient: Ingredient)
-    suspend fun updateItem(ingredient: Ingredient)
+    fun getIngredientStream(id: Int): Flow<Ingredient?>
+
+    suspend fun getIngredient(id: Int): Ingredient
+    suspend fun insertIngredient(ingredient: Ingredient)
+    suspend fun deleteIngredient(ingredient: Ingredient)
+    suspend fun updateIngredient(ingredient: Ingredient)
 }

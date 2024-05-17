@@ -9,14 +9,14 @@ data class IngredientUiState (
 
 data class IngredientDetails(
     var id: Int = 0,
-    var name: String = "",
-    var manufacturer: String = "",
-    var weight: String = "",
-    var price: String = "",
-    var energy: String = "",
-    var protein: String = "",
-    var fat: String = "",
-    var carbohydrates: String = ""
+    var name: String = "Ingredient name",
+    var manufacturer: String = "Manufacturer",
+    var weight: String = "0.0",
+    var price: String = "0.0",
+    var energy: String = "0.0",
+    var protein: String = "0.0",
+    var fat: String = "0.0",
+    var carbohydrates: String = "0.0"
 )
 
 fun IngredientDetails.toIngredient(): Ingredient = Ingredient(
