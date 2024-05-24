@@ -1,84 +1,137 @@
 package com.yanetto.netto.ui.recipeScreen
 
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.setValue
+import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
-import com.yanetto.netto.model.IngredientInRecipe
+import androidx.lifecycle.ViewModelProvider
+import androidx.lifecycle.createSavedStateHandle
+import androidx.lifecycle.viewModelScope
+import androidx.lifecycle.viewmodel.CreationExtras
+import com.yanetto.netto.NettoApplication
+import com.yanetto.netto.data.RecipeRepository
+import com.yanetto.netto.model.Ingredient
 import com.yanetto.netto.model.NutritionalOption
-import com.yanetto.netto.model.Recipe
-import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.update
+import com.yanetto.netto.ui.editRecipeScreen.toRecipeDetails
+import kotlinx.coroutines.launch
 import java.math.RoundingMode
 
-class RecipeViewModel: ViewModel() {
-    private val _uiState = MutableStateFlow(RecipeUiState())
-    val uiState: StateFlow<RecipeUiState> = _uiState.asStateFlow()
+class RecipeViewModel(
+    savedStateHandle: SavedStateHandle,
+    private val recipeRepository: RecipeRepository
+): ViewModel() {
+    var uiState by mutableStateOf(RecipeUiState())
 
+    private val recipeId: Int = savedStateHandle[RecipeDetailsDestination.recipeIdArg] ?: -1
 
-    fun setCurrentRecipe(recipe: Recipe){
-        _uiState.update {
-                currentState ->currentState.copy(currentRecipe = recipe)
+    init {
+        if (recipeId != -1){
+            viewModelScope.launch {
+                val recipeDetails = recipeRepository.getRecipe(recipeId).toRecipeDetails()
+
+                uiState = uiState.copy(
+                    recipeDetails = recipeDetails,
+                    updatedServingsCount = recipeDetails.servingsCount.toFloat(),
+                    selectedNutritionalOption = NutritionalOption.TOTAL
+                )
+
+                recipeRepository.getIngredientsWithWeights(recipeId)
+                    .collect { ingredientsWithWeights ->
+                        uiState = uiState.copy(listOfIngredients = ingredientsWithWeights)
+                    }
+
+                uiState = uiState.copy(
+                    updatedIngredients = uiState.listOfIngredients.map { it.ingredient },
+                    updatedWeight = uiState.listOfIngredients.map { it.ingredientWeight }.sum(),
+                    newWeight = uiState.listOfIngredients.map { it.ingredientWeight }.sum()
+                )
+            }
         }
     }
+
+    var totalPrice = uiState.listOfIngredients.sumOf { it.ingredient.price/it.ingredient.weight * it.ingredientWeight.toDouble()}.toFloat()
+    var totalWeight = uiState.listOfIngredients.sumOf {it.ingredientWeight.toDouble()}.toFloat()
+    var energy = uiState.listOfIngredients.sumOf {it.ingredient.energy.toDouble()}.toFloat()
+    var protein = uiState.listOfIngredients.sumOf {it.ingredient.protein.toDouble()}.toFloat()
+    var fat = uiState.listOfIngredients.sumOf {it.ingredient.fat.toDouble()}.toFloat()
+    var carbohydrates = uiState.listOfIngredients.sumOf {it.ingredient.carbohydrates.toDouble()}.toFloat()
+
+    fun getIngredientWeight(index: Int, newTotalWeight: Float): Float{
+        val ingredient = uiState.listOfIngredients[index]
+        return ingredient.ingredientWeight * newTotalWeight / totalWeight
+    }
+
     fun changeServingCount(increment: Boolean){
-        val servingsCount = _uiState.value.updatedServingsCount
+        val servingsCount = uiState.updatedServingsCount
 
         val newServingCount: Float
         if (increment){
             newServingCount = servingsCount.toInt() + 1f
-            _uiState.update {
-                currentState -> currentState.copy(updatedServingsCount = newServingCount)
-            }
+            uiState = uiState.copy(updatedServingsCount = newServingCount)
         }
         else {
             newServingCount = (if (servingsCount == servingsCount.toInt().toFloat()) servingsCount.toInt() - 1f else servingsCount.toInt().toFloat())
-            _uiState.update {
-                    currentState -> currentState.copy(updatedServingsCount = newServingCount)
-            }
+            uiState = uiState.copy(updatedServingsCount = newServingCount)
         }
 
         changeServingsCount(newServingCount)
     }
 
     private fun changeServingsCount(newServingCount: Float){
-        val recipeServingCount = _uiState.value.currentRecipe.servingsCount
-        val totalWeight = _uiState.value.currentRecipe.totalWeight
-        _uiState.update {
-                currentState -> currentState.copy(updatedWeight = (totalWeight * newServingCount / recipeServingCount).toBigDecimal().setScale(1, RoundingMode.UP).toFloat())
-        }
-        changeNutritionalOption(_uiState.value.selectedNutritionalOption)
+        val recipeServingCount = uiState.recipeDetails.servingsCount
+        val totalWeight = totalWeight
+        uiState = uiState.copy(updatedWeight = (totalWeight * newServingCount / recipeServingCount.toFloat()).toBigDecimal().setScale(1, RoundingMode.UP).toFloat())
+        changeNutritionalOption(uiState.selectedNutritionalOption)
     }
 
    fun changeNutritionalOption(option: NutritionalOption){
         when(option){
             NutritionalOption.SERVING -> {
-                _uiState.update {
-                    currentState -> currentState.copy(newWeight = (_uiState.value.currentRecipe.totalWeight / _uiState.value.currentRecipe.servingsCount)
+                uiState = uiState.copy(newWeight = (totalWeight / uiState.recipeDetails.servingsCount.toFloat())
                         .toBigDecimal().setScale(1, RoundingMode.UP).toFloat())
-                }
             }
             NutritionalOption.HUNDRED_GRAMS -> {
-                _uiState.update {
-                        currentState -> currentState.copy(newWeight = 100f)
-                }
+                uiState = uiState.copy(newWeight = 100f)
             }
             NutritionalOption.TOTAL -> {
-                _uiState.update {
-                        currentState -> currentState.copy(newWeight = _uiState.value.updatedWeight)
-                }
+                uiState = uiState.copy(newWeight = uiState.updatedWeight)
             }
         }
-       _uiState.update {
-           currentState -> currentState.copy(selectedNutritionalOption = option)
-       }
+       uiState = uiState.copy(selectedNutritionalOption = option)
     }
 
-    fun onChangeIngredientWeight(ingredientInRecipe: IngredientInRecipe, newIngredientWeight: Float){
-        val part = ingredientInRecipe.weight / _uiState.value.currentRecipe.totalWeight
+    fun onChangeIngredientWeight(ingredientRecipe: Ingredient, newIngredientWeight: Float){
+        val part = ingredientRecipe.weight / totalWeight
         val updatedWeight = newIngredientWeight / part
-        _uiState.update {
-            currentState -> currentState.copy(updatedWeight = updatedWeight, updatedServingsCount = updatedWeight * _uiState.value.currentRecipe.servingsCount / _uiState.value.currentRecipe.totalWeight)
+        uiState = uiState.copy(updatedWeight = updatedWeight, updatedServingsCount = updatedWeight * uiState.recipeDetails.servingsCount.toFloat() / totalWeight)
+        changeNutritionalOption(uiState.selectedNutritionalOption)
+    }
+
+    fun update(){
+        totalPrice = uiState.listOfIngredients.sumOf { it.ingredient.price/it.ingredient.weight * it.ingredientWeight.toDouble()}.toFloat()
+        totalWeight = uiState.listOfIngredients.sumOf {it.ingredientWeight.toDouble()}.toFloat()
+        energy = uiState.listOfIngredients.sumOf {it.ingredient.energy.toDouble()}.toFloat()
+        protein = uiState.listOfIngredients.sumOf {it.ingredient.protein.toDouble()}.toFloat()
+        fat = uiState.listOfIngredients.sumOf {it.ingredient.fat.toDouble()}.toFloat()
+        carbohydrates = uiState.listOfIngredients.sumOf {it.ingredient.carbohydrates.toDouble()}.toFloat()
+    }
+
+    companion object {
+        val Factory: ViewModelProvider.Factory = object : ViewModelProvider.Factory {
+            @Suppress("UNCHECKED_CAST")
+            override fun <T : ViewModel> create(
+                modelClass: Class<T>,
+                extras: CreationExtras
+            ): T {
+                val application = checkNotNull(extras[ViewModelProvider.AndroidViewModelFactory.APPLICATION_KEY])
+                val savedStateHandle = extras.createSavedStateHandle()
+
+                return RecipeViewModel(
+                    recipeRepository = (application as NettoApplication).container.recipeRepository,
+                    savedStateHandle = savedStateHandle
+                ) as T
+            }
         }
-        changeNutritionalOption(_uiState.value.selectedNutritionalOption)
     }
 }

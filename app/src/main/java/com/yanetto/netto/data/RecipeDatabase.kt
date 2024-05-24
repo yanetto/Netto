@@ -5,8 +5,10 @@ import androidx.room.Database
 import androidx.room.Room
 import androidx.room.RoomDatabase
 import com.yanetto.netto.model.Ingredient
+import com.yanetto.netto.model.IngredientRecipe
+import com.yanetto.netto.model.Recipe
 
-@Database(entities = [Ingredient::class], version = 1, exportSchema = false)
+@Database(entities = [Ingredient::class, Recipe::class, IngredientRecipe::class], version = 2, exportSchema = false)
 abstract class RecipeDatabase:RoomDatabase() {
     abstract fun ingredientDao(): IngredientDao
     companion object {
