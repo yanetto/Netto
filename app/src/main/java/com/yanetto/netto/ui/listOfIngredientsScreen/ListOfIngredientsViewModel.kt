@@ -7,14 +7,41 @@ import androidx.lifecycle.viewmodel.initializer
 import androidx.lifecycle.viewmodel.viewModelFactory
 import com.yanetto.netto.NettoApplication
 import com.yanetto.netto.data.RecipeRepository
+import com.yanetto.netto.model.Ingredient
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.withContext
 
 class ListOfIngredientsViewModel(
     private val recipeRepository: RecipeRepository
 ): ViewModel() {
+    private val _query = MutableStateFlow("")
+    val query: StateFlow<String> = _query
+
+    private val allIngredients: StateFlow<List<Ingredient>> = recipeRepository.getAllIngredientsStream()
+        .stateIn(
+            scope = viewModelScope,
+            started = SharingStarted.WhileSubscribed(5_000L),
+            initialValue = emptyList()
+        )
+
+    val ingredientsUiState: StateFlow<ListOfIngredientsUiState> = combine(_query, allIngredients) { query, ingredients ->
+        val filteredIngredients = if (query.isEmpty()) {
+            ingredients
+        } else {
+            ingredients.filter { it.name.contains(query, ignoreCase = true) }
+        }
+        ListOfIngredientsUiState(filteredIngredients)
+    }.stateIn(
+        scope = viewModelScope,
+        started = SharingStarted.WhileSubscribed(5_000L),
+        initialValue = ListOfIngredientsUiState()
+    )
+
     companion object {
         val Factory: ViewModelProvider.Factory = viewModelFactory {
             initializer {
@@ -25,15 +52,13 @@ class ListOfIngredientsViewModel(
         }
     }
 
-    val ingredientsUiState: StateFlow<ListOfIngredientsUiState> =
-        recipeRepository.getAllIngredientsStream().map { ListOfIngredientsUiState(it) }
-            .stateIn(
-                scope = viewModelScope,
-                started = SharingStarted.WhileSubscribed(5_000L),
-                initialValue = ListOfIngredientsUiState()
-            )
-
     suspend fun deleteIngredient(id: Int){
-        recipeRepository.deleteIngredient(recipeRepository.getIngredient(id))
+        withContext(Dispatchers.IO) {
+            recipeRepository.deleteIngredient(recipeRepository.getIngredient(id))
+        }
+    }
+
+    fun onQueryChange(newQuery: String) {
+        _query.value = newQuery
     }
 }

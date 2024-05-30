@@ -1,12 +1,14 @@
 package com.yanetto.netto.ui.editRecipeScreen
 
+import com.yanetto.netto.model.Ingredient
 import com.yanetto.netto.model.IngredientWithWeight
 import com.yanetto.netto.model.Recipe
 
 data class EditRecipeUiState (
     val recipeDetails: RecipeDetails = RecipeDetails(),
     val isEntryValid: Boolean = false,
-    val listOfIngredients: List<IngredientWithWeight> = listOf()
+    val listOfIngredients: List<IngredientWithWeight> = listOf(),
+    val allIngredientList: List<Ingredient> = listOf()
 )
 
 data class RecipeDetails(

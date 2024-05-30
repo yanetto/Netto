@@ -18,7 +18,7 @@
     <string name="kcal">%.1f kcal</string>
     <string name="g_value">%.1f g</string>
     <string name="str_serving">Serving</string>
-    <string name="new_weight_g">%1$s g</string>
+    <string name="new_weight_g">%.1f g</string>
     <string name="search_your_recipes">Search your recipes</string>
     <string name="name">Name</string>
     <string name="manufacturer">Manufacturer</string>
@@ -29,4 +29,5 @@
     <string name="_g">" g"</string>
     <string name="_rub">" rub"</string>
     <string name="_kcal">" kcal"</string>
+    <string name="number_of_servings">Number of servings</string>
 </resources>

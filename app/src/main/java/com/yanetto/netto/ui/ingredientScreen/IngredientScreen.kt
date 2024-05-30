@@ -35,6 +35,7 @@ import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -70,7 +71,7 @@ fun IngredientScreen(
     ingredientViewModel: IngredientViewModel = viewModel(factory = IngredientViewModel.Factory),
 ){
     val coroutineScope = rememberCoroutineScope()
-    val uiState = ingredientViewModel.ingredientUiState
+    val ingredientUiState by ingredientViewModel.ingredientUiState.collectAsState()
 
     Column {
         Row (modifier = modifier
@@ -119,12 +120,12 @@ fun IngredientScreen(
                 Spacer(modifier = Modifier.height(224.dp))
                 ElevatedCard (
                     modifier = Modifier.fillMaxHeight(),
-                    shape = RoundedCornerShape(24.dp),
+                    shape = RoundedCornerShape(8,8, 0, 0),
                     elevation = CardDefaults.elevatedCardElevation(defaultElevation = 12.dp)
                 ){
                     IngredientNameLabel(
                         modifier = Modifier.padding(vertical = 8.dp, horizontal = 8.dp),
-                        ingredientDetails = uiState.ingredientDetails,
+                        ingredientDetails = ingredientUiState.ingredientDetails,
                         onValueChange = ingredientViewModel::updateUiState
                     )
 
@@ -136,7 +137,7 @@ fun IngredientScreen(
 
                     IngredientManufacturerLabel(
                         modifier = Modifier.padding(horizontal = 8.dp),
-                        ingredientDetails = uiState.ingredientDetails,
+                        ingredientDetails = ingredientUiState.ingredientDetails,
                         onValueChange = ingredientViewModel::updateUiState
                     )
 
@@ -147,28 +148,28 @@ fun IngredientScreen(
                     NutritionalIngredientItems(
                         modifier = Modifier.padding(horizontal = 8.dp),
                         param = stringResource(R.string.energy), info = stringResource(R.string._kcal),
-                        ingredientDetail = uiState.ingredientDetails.energy,
+                        ingredientDetail = ingredientUiState.ingredientDetails.energy,
                         onValueChange = ingredientViewModel::updateEnergy
                     )
 
                     NutritionalIngredientItems(
                         modifier = Modifier.padding(horizontal = 8.dp),
                         param = stringResource(R.string.protein), info = stringResource(R.string._g),
-                        ingredientDetail = uiState.ingredientDetails.protein,
+                        ingredientDetail = ingredientUiState.ingredientDetails.protein,
                         onValueChange = ingredientViewModel::updateProtein
                     )
 
                     NutritionalIngredientItems(
                         modifier = Modifier.padding(horizontal = 8.dp),
                         param = stringResource(R.string.fat), info = stringResource(R.string._g),
-                        ingredientDetail = uiState.ingredientDetails.fat,
+                        ingredientDetail = ingredientUiState.ingredientDetails.fat,
                         onValueChange = ingredientViewModel::updateFat
                     )
 
                     NutritionalIngredientItems(
                         modifier = Modifier.padding(horizontal = 8.dp),
                         param = stringResource(R.string.carbohydrates), info = stringResource(R.string._g),
-                        ingredientDetail = uiState.ingredientDetails.carbohydrates,
+                        ingredientDetail = ingredientUiState.ingredientDetails.carbohydrates,
                         onValueChange = ingredientViewModel::updateCarbohydrates
                     )
 
@@ -181,14 +182,14 @@ fun IngredientScreen(
                     WeightAndPriceItems(
                         modifier = Modifier.padding(horizontal = 8.dp),
                         label = stringResource(id = R.string.weight), info = stringResource(R.string._g),
-                        ingredientDetail = uiState.ingredientDetails.weight,
+                        ingredientDetail = ingredientUiState.ingredientDetails.weight,
                         onValueChange = ingredientViewModel::updateWeight
                     )
 
                     WeightAndPriceItems(
                         modifier = Modifier.padding(horizontal = 8.dp),
                         label = stringResource(id = R.string.price), info = stringResource(R.string._rub),
-                        ingredientDetail = uiState.ingredientDetails.price,
+                        ingredientDetail = ingredientUiState.ingredientDetails.price,
                         onValueChange = ingredientViewModel::updatePrice
                     )
                     Spacer(modifier = Modifier.height(16.dp))

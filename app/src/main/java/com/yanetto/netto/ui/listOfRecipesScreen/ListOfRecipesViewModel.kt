@@ -7,14 +7,42 @@ import androidx.lifecycle.viewmodel.initializer
 import androidx.lifecycle.viewmodel.viewModelFactory
 import com.yanetto.netto.NettoApplication
 import com.yanetto.netto.data.RecipeRepository
+import com.yanetto.netto.model.Recipe
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.withContext
 
 class ListOfRecipesViewModel(
     private val recipeRepository: RecipeRepository
 ):ViewModel() {
+    private val _query = MutableStateFlow("")
+    val query: StateFlow<String> = _query
+
+    private val allRecipes: StateFlow<List<Recipe>> = recipeRepository.getAllRecipesStream()
+        .stateIn(
+            scope = viewModelScope,
+            started = SharingStarted.WhileSubscribed(5_000L),
+            initialValue = emptyList()
+        )
+
+    val recipeUiState: StateFlow<ListOfRecipesUiState> = combine(_query, allRecipes) { query, recipes ->
+        val filteredRecipes = if (query.isEmpty()) {
+            recipes
+        } else {
+            recipes.filter { it.name.contains(query, ignoreCase = true) }
+        }
+        ListOfRecipesUiState(filteredRecipes)
+    }.stateIn(
+        scope = viewModelScope,
+        started = SharingStarted.WhileSubscribed(5_000L),
+        initialValue = ListOfRecipesUiState()
+    )
+
+
     companion object {
         val Factory: ViewModelProvider.Factory = viewModelFactory {
             initializer {
@@ -25,15 +53,14 @@ class ListOfRecipesViewModel(
         }
     }
 
-    val recipeUiState: StateFlow<ListOfRecipesUiState> =
-        recipeRepository.getAllRecipesStream().map { ListOfRecipesUiState(it) }
-            .stateIn(
-                scope = viewModelScope,
-                started = SharingStarted.WhileSubscribed(5_000L),
-                initialValue = ListOfRecipesUiState()
-            )
-
     suspend fun deleteRecipe(id: Int){
-        recipeRepository.deleteRecipe(recipeRepository.getRecipe(id))
+        withContext(Dispatchers.IO) {
+            recipeRepository.deleteRecipe(recipeRepository.getRecipe(id))
+            recipeRepository.deleteIngredientsFromRecipe(id)
+        }
+    }
+
+    fun onQueryChange(newQuery: String) {
+        _query.value = newQuery
     }
 }

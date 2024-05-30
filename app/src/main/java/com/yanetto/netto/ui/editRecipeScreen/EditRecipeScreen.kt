@@ -1,5 +1,6 @@
 package com.yanetto.netto.ui.editRecipeScreen
 
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.Orientation
 import androidx.compose.foundation.gestures.scrollable
 import androidx.compose.foundation.interaction.MutableInteractionSource
@@ -16,16 +17,13 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.rounded.Check
-import androidx.compose.material.icons.rounded.Close
 import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.CenterAlignedTopAppBar
 import androidx.compose.material3.ElevatedCard
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
@@ -37,14 +35,17 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.SolidColor
+import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
@@ -72,38 +73,12 @@ fun EditRecipeScreen(
     navigateBack: () -> Unit = {},
     editRecipeViewModel: EditRecipeViewModel = viewModel(factory = EditRecipeViewModel.Factory)
 ){
+    var openBottomSheet by rememberSaveable { mutableStateOf(false) }
+    val bottomSheetState = rememberModalBottomSheetState(
+        skipPartiallyExpanded = true
+    )
     val coroutineScope = rememberCoroutineScope()
-    val sheetState = rememberModalBottomSheetState()
-    val uiState = editRecipeViewModel.recipeUiState
-
-    if (sheetState.isVisible) {
-        ModalBottomSheet(
-            sheetState = sheetState,
-            onDismissRequest = {
-                coroutineScope.launch {
-                    sheetState.hide()
-                }
-            },
-        ) {
-            Row(horizontalArrangement = Arrangement.SpaceAround) {
-                CenterAlignedTopAppBar(navigationIcon = {
-                    IconButton(onClick = {
-                        coroutineScope.launch {
-                            sheetState.hide()
-                        }
-                    }) {
-                        Icon(Icons.Rounded.Close, contentDescription = "Cancel")
-                    }
-                }, title = { Text("Content") }, actions = {
-                    IconButton(onClick = { }) {
-                        Icon(Icons.Rounded.Check, contentDescription = "Save")
-                    }
-                })
-            }
-        }
-    }
-
-
+    val editRecipeUiState by editRecipeViewModel.recipeUiState.collectAsState()
 
     Column {
         Row (modifier = modifier
@@ -128,7 +103,7 @@ fun EditRecipeScreen(
                 enabled = true,
                 onClick = {
                     coroutineScope.launch { editRecipeViewModel.saveItem() }
-                    navigateBack()},
+                        navigateBack()},
                 modifier = Modifier
                     .size(48.dp)
             ) {
@@ -153,12 +128,12 @@ fun EditRecipeScreen(
                 Spacer(modifier = Modifier.height(224.dp))
                 ElevatedCard (
                     modifier = Modifier.fillMaxHeight(),
-                    shape = RoundedCornerShape(24.dp),
+                    shape = RoundedCornerShape(8,8, 0, 0),
                     elevation = CardDefaults.elevatedCardElevation(defaultElevation = 12.dp)
                 ){
                     RecipeNameLabel(
                         modifier = Modifier.padding(vertical = 8.dp, horizontal = 8.dp),
-                        recipeDetails = uiState.recipeDetails,
+                        recipeDetails = editRecipeUiState.recipeDetails,
                         onValueChange = editRecipeViewModel::updateUiState
                     )
 
@@ -170,26 +145,54 @@ fun EditRecipeScreen(
 
                     RecipeDescriptionLabel(
                         modifier = Modifier.padding(horizontal = 8.dp),
-                        recipeDetails = uiState.recipeDetails,
+                        recipeDetails = editRecipeUiState.recipeDetails,
                         onValueChange = editRecipeViewModel::updateUiState
                     )
 
                     ServingsLabel(
                         modifier = Modifier.padding(8.dp),
-                        recipeDetails = uiState.recipeDetails,
+                        recipeDetails = editRecipeUiState.recipeDetails,
                         onValueChange = editRecipeViewModel::updateUiState
                     )
 
-                    LabelWithAddButton(
-                        modifier = Modifier.padding(horizontal = 8.dp),
-                        labelText = stringResource(R.string.ingredients)
+                    Row(
+                        modifier = modifier
+                            .padding(horizontal = 16.dp)
+                            .fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceBetween
+                    ) {
+                        Text(
+                            modifier = Modifier.padding(vertical = 8.dp),
+                            text = stringResource(id = R.string.ingredients),
+                            style = MaterialTheme.typography.headlineMedium,
+                            textAlign = TextAlign.Start
+                        )
+                        IconButton(
+                            onClick = { openBottomSheet = !openBottomSheet },
+                            modifier = Modifier
+                                .size(36.dp)
+                                .align(Alignment.CenterVertically)
+                        ) {
+                            Icon(
+                                painter = painterResource(id = R.drawable.add_40dp_fill0_wght400_grad0_opsz40),
+                                contentDescription = null,
+                                modifier = Modifier,
+                                tint = MaterialTheme.colorScheme.primary
+                            )
+                        }
+                    }
+                    HorizontalDivider(
+                        modifier = Modifier
+                            .padding(start = 16.dp, end = 16.dp, bottom = 8.dp)
+                            .fillMaxWidth()
                     )
 
-                    for (i in uiState.listOfIngredients.indices) {
-                        val ingredient = uiState.listOfIngredients[i].ingredient
+                    for (i in editRecipeUiState.listOfIngredients.indices) {
+                        val ingredient = editRecipeUiState.listOfIngredients[i].ingredient
                         IngredientItem(
+                            modifier = Modifier.padding(horizontal = 8.dp),
                             ingredient = ingredient,
-                            weight = uiState.listOfIngredients[i].ingredientWeight,
+                            weight = editRecipeUiState.listOfIngredients[i].ingredientWeight,
                             onChangeIngredientWeight = editRecipeViewModel::updateIngredientWeight
                         )
                     }
@@ -199,46 +202,81 @@ fun EditRecipeScreen(
             }
         }
     }
-}
 
+    val screenHeight = LocalConfiguration.current.screenHeightDp.dp
 
-@Composable
-fun LabelWithAddButton(
-    modifier: Modifier = Modifier,
-    labelText: String
-){
-    Row(
-        modifier = modifier
-            .padding(start = 8.dp, end = 8.dp)
-            .fillMaxWidth(),
-        horizontalArrangement = Arrangement.SpaceBetween
-    ) {
-        Text(
-            modifier = Modifier.padding(top = 8.dp),
-            text = labelText,
-            style = MaterialTheme.typography.headlineMedium,
-            textAlign = TextAlign.Start
-        )
-        IconButton(
-            onClick = {  },
-            modifier = Modifier
-                .size(36.dp)
-                .align(Alignment.CenterVertically)
-        ) {
-            Icon(
-                painter = painterResource(id = R.drawable.add_40dp_fill0_wght400_grad0_opsz40),
-                contentDescription = null,
-                modifier = Modifier,
-                tint = MaterialTheme.colorScheme.primary
+    if (openBottomSheet){
+        ModalBottomSheet(
+            onDismissRequest = { openBottomSheet = false },
+            modifier = modifier.height(screenHeight * 0.9f),
+            sheetState = bottomSheetState
+        ){
+            IngredientList(
+                modifier = modifier.padding(horizontal = 8.dp),
+                ingredientList = editRecipeUiState.allIngredientList,
+                onIngredientCardClicked = editRecipeViewModel::addIngredientToRecipe
             )
         }
     }
-    HorizontalDivider(
-        modifier = Modifier
-            .padding(start = 16.dp, end = 16.dp, bottom = 8.dp)
-            .fillMaxWidth()
-    )
 }
+
+@Composable
+fun IngredientList(
+    ingredientList: List<Ingredient>,
+    onIngredientCardClicked: (Ingredient, Float) -> Unit,
+    modifier: Modifier = Modifier
+){
+    LazyColumn(
+        modifier = modifier
+            .fillMaxWidth()
+            .scrollable(
+                orientation = Orientation.Vertical,
+                state = rememberScrollState()
+            )
+    ){
+        items(ingredientList){ingredient ->
+            IngredientCard(
+                ingredient = ingredient,
+                modifier = Modifier,
+                onIngredientCardClicked = onIngredientCardClicked
+            )
+        }
+    }
+}
+
+@Composable
+fun IngredientCard(
+    ingredient: Ingredient,
+    modifier: Modifier = Modifier,
+    onIngredientCardClicked: (Ingredient, Float) -> Unit
+){
+    Box(
+        modifier = modifier
+            .clickable(onClick = { onIngredientCardClicked(ingredient, 100f) })
+            .padding(horizontal = 8.dp)
+            .fillMaxWidth()
+    ){
+        Row (modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically
+        ){
+            Column (modifier = Modifier.padding(8.dp)){
+                Text(
+                    text = ingredient.name,
+                    style = MaterialTheme.typography.headlineSmall,
+                    modifier = Modifier.padding(horizontal = 8.dp)
+                )
+                Text(
+                    text = ingredient.manufacturer,
+                    style = MaterialTheme.typography.titleMedium,
+                    modifier = Modifier.padding(horizontal = 8.dp)
+                )
+            }
+        }
+    }
+    HorizontalDivider(Modifier.padding(8.dp), thickness = 2.dp)
+}
+
 
 @Composable
 fun IngredientItem(
@@ -338,7 +376,7 @@ fun ServingsLabel(
     var textValue by remember{ mutableStateOf(TextFieldValue("")) }
     val interactionSource = remember{ MutableInteractionSource() }
     val isFocused = interactionSource.collectIsFocusedAsState()
-    val valueHint = recipeDetails.servingsCount
+    val valueHint = if (recipeDetails.servingsCount == "1") recipeDetails.servingsCount + " Serving" else recipeDetails.servingsCount + " Servings"
 
     LaunchedEffect(isFocused.value){
         if(!isFocused.value) textValue = TextFieldValue("")
@@ -353,7 +391,9 @@ fun ServingsLabel(
             textValue = it
             onValueChange(recipeDetails.copy(servingsCount = it.text)) },
         singleLine = true,
-        modifier = modifier.padding(8.dp),
+        modifier = modifier
+            .fillMaxWidth()
+            .padding(8.dp),
         textStyle = MaterialTheme.typography.titleLarge.copy(textAlign = TextAlign.Start, color = color),
         interactionSource = interactionSource,
         keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),

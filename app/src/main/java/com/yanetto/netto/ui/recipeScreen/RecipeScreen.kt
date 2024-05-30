@@ -36,6 +36,7 @@ import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -55,7 +56,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.yanetto.netto.R
-import com.yanetto.netto.model.Ingredient
+import com.yanetto.netto.model.IngredientWithWeight
 import com.yanetto.netto.model.NutritionalOption
 import com.yanetto.netto.ui.theme.NettoTheme
 import java.math.RoundingMode
@@ -72,7 +73,7 @@ fun RecipeScreen(
     recipeViewModel: RecipeViewModel = viewModel(factory = RecipeViewModel.Factory),
     navigateToEditRecipe: (Int) -> Unit
 ){
-    val recipeUiState = recipeViewModel.uiState
+    val recipeUiState by recipeViewModel.recipeUiState.collectAsState()
 
     LazyColumn (
         modifier = modifier
@@ -124,7 +125,7 @@ fun RecipeScreen(
             ElevatedCard(
                 modifier = Modifier
                     .fillMaxHeight(),
-                shape = RoundedCornerShape(24.dp),
+                shape = RoundedCornerShape(8,8, 0, 0),
                 elevation = CardDefaults.elevatedCardElevation(defaultElevation = 12.dp)
             ) {
                 Spacer(modifier = Modifier.height(8.dp))
@@ -141,7 +142,7 @@ fun RecipeScreen(
                 )
 
                 Label(
-                    modifier = Modifier.padding(horizontal = 8.dp),
+                    modifier = Modifier.padding(start = 8.dp, end = 8.dp, bottom = 8.dp),
                     labelText = stringResource(R.string.ingredients)
                 )
 
@@ -156,14 +157,14 @@ fun RecipeScreen(
                     val ingredient = recipeUiState.listOfIngredients[i]
                     IngredientItem(
                         modifier = Modifier.padding(horizontal = 8.dp),
-                        ingredient = ingredient.ingredient,
+                        ingredient = ingredient,
                         weight = recipeViewModel.getIngredientWeight(i, newTotalWeight = recipeUiState.updatedWeight),
                         onChangeIngredientWeight = recipeViewModel::onChangeIngredientWeight
                     )
                 }
 
                 Label(
-                    modifier = Modifier.padding(horizontal = 8.dp),
+                    modifier = Modifier.padding(start = 8.dp, end = 8.dp, bottom = 8.dp),
                     labelText = stringResource(R.string.nutritional_info)
                 )
 
@@ -175,16 +176,16 @@ fun RecipeScreen(
 
                 NutritionalInfo(
                     modifier = Modifier.padding(horizontal = 8.dp),
-                    energy = recipeViewModel.energy * recipeUiState.newWeight / 100,
-                    protein = recipeViewModel.protein * recipeUiState.newWeight / 100,
-                    fat = recipeViewModel.fat * recipeUiState.newWeight / 100,
-                    carbohydrates = recipeViewModel.carbohydrates * recipeUiState.newWeight / 100
+                    energy = recipeUiState.energy * recipeUiState.newWeight / 100,
+                    protein = recipeUiState.protein * recipeUiState.newWeight / 100,
+                    fat = recipeUiState.fat * recipeUiState.newWeight / 100,
+                    carbohydrates = recipeUiState.carbohydrates * recipeUiState.newWeight / 100
                 )
 
                 Spacer(modifier = Modifier.padding(4.dp))
 
                 val price =
-                    recipeViewModel.totalPrice * recipeUiState.newWeight / recipeViewModel.totalWeight
+                    recipeUiState.totalPrice * recipeUiState.newWeight / recipeUiState.totalWeight
 
                 PriceAndWeightLabels(
                     modifier = Modifier.padding(horizontal = 8.dp),
@@ -392,9 +393,9 @@ fun PriceAndWeightLabels(
 @Composable
 fun IngredientItem(
     modifier: Modifier = Modifier,
-    ingredient: Ingredient,
+    ingredient: IngredientWithWeight,
     weight: Float,
-    onChangeIngredientWeight: (Ingredient, Float) -> Unit
+    onChangeIngredientWeight: (IngredientWithWeight, Float) -> Unit
 ){
     val focusManager = LocalFocusManager.current
     Row(
@@ -405,13 +406,13 @@ fun IngredientItem(
     ) {
         Column(modifier = Modifier.weight(2f)) {
             Text(
-                text = ingredient.name,
+                text = ingredient.ingredient.name,
                 textAlign = TextAlign.Start,
                 style = MaterialTheme.typography.titleMedium
             )
             Spacer(modifier = Modifier.size(4.dp))
             Text(
-                text = ingredient.manufacturer,
+                text = ingredient.ingredient.manufacturer,
                 textAlign = TextAlign.Start,
                 maxLines = 1,
                 overflow = TextOverflow.Ellipsis,

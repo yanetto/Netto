@@ -1,8 +1,5 @@
 package com.yanetto.netto.ui.editRecipeScreen
 
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.setValue
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
@@ -14,68 +11,111 @@ import com.yanetto.netto.data.RecipeRepository
 import com.yanetto.netto.model.Ingredient
 import com.yanetto.netto.model.IngredientRecipe
 import com.yanetto.netto.model.IngredientWithWeight
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 
 class EditRecipeViewModel(
     private val recipeRepository: RecipeRepository,
     savedStateHandle: SavedStateHandle
 ) : ViewModel() {
-    var recipeUiState by mutableStateOf(EditRecipeUiState())
+    private val _recipeUiState = MutableStateFlow(EditRecipeUiState())
+    val recipeUiState: StateFlow<EditRecipeUiState> = _recipeUiState
 
     private val recipeId: Int = savedStateHandle[EditRecipeDetailsDestination.recipeIdArg] ?: -1
-    init {
-        if (recipeId != -1){
-            viewModelScope.launch {
-                    recipeUiState = recipeUiState.copy(recipeDetails = recipeRepository.getRecipe(recipeId).toRecipeDetails())
 
-                    recipeRepository.getIngredientsWithWeights(recipeId)
-                        .collect { ingredientsWithWeights ->
-                            recipeUiState = recipeUiState.copy(listOfIngredients = ingredientsWithWeights)
-                        }
+    init {
+        if (recipeId != -1) {
+            viewModelScope.launch {
+                val recipeDetails = recipeRepository.getRecipe(recipeId).toRecipeDetails()
+                _recipeUiState.value = _recipeUiState.value.copy(recipeDetails = recipeDetails)
+
+                recipeRepository.getIngredientsWithWeights(recipeId)
+                    .collect { ingredientsWithWeights ->
+//                        Log.d(
+//                            "RecipeViewModel",
+//                            "Ingredients with weights: $ingredientsWithWeights"
+//                        )
+                        _recipeUiState.value =
+                            _recipeUiState.value.copy(listOfIngredients = ingredientsWithWeights)
+                    }
             }
+        }
+
+        viewModelScope.launch {
+            recipeRepository.getAllIngredientsStream()
+                .collect { ingredients ->
+//                    Log.d("RecipeViewModel", "All ingredients: $ingredients")
+                    _recipeUiState.value =
+                        _recipeUiState.value.copy(allIngredientList = ingredients)
+                }
         }
     }
 
+
     fun updateUiState(recipeDetails: RecipeDetails) {
-        recipeUiState =
-            EditRecipeUiState(recipeDetails = recipeDetails, isEntryValid = validateInput(recipeDetails))
+        _recipeUiState.value = _recipeUiState.value.copy(recipeDetails = recipeDetails, isEntryValid = validateInput(recipeDetails))
     }
 
     fun updateIngredientWeight(ingredient: Ingredient, weight: Float){
-        var ind : Int
-        var list = recipeUiState.listOfIngredients.toMutableList()
+        val list = _recipeUiState.value.listOfIngredients.toMutableList()
         for (i in list.indices){
             if (list[i].ingredient == ingredient) {
                 list[i] = IngredientWithWeight(ingredient, weight)
-                recipeUiState = recipeUiState.copy(listOfIngredients = list)
+                _recipeUiState.value = _recipeUiState.value.copy(listOfIngredients = list)
                 break
             }
         }
     }
 
-    private fun validateInput(uiState: RecipeDetails = recipeUiState.recipeDetails): Boolean {
+    private fun validateInput(uiState: RecipeDetails = _recipeUiState.value.recipeDetails): Boolean {
         return with(uiState) {
             name.isNotBlank() && description.isNotBlank() && servingsCount.isNotBlank()
         }
     }
 
-    suspend fun getIngredientList(): List<Ingredient> {
-        var ingredientList: List<Ingredient> = listOf()
-        recipeRepository.getAllIngredientsStream().collect {ingredients ->
-            ingredientList = ingredients
-        }
-        return ingredientList
-    }
-
     suspend fun saveItem() {
         if (validateInput()) {
-            if (recipeId == -1) recipeRepository.insertRecipe(recipeUiState.recipeDetails.toRecipe())
-            else recipeRepository.updateRecipe(recipeUiState.recipeDetails.toRecipe())
+            withContext(Dispatchers.IO) {
+                if (recipeId == -1) {
+                    recipeRepository.insertRecipe(_recipeUiState.value.recipeDetails.toRecipe())
+                    val id = recipeRepository.getAllRecipesStream().first().maxBy { it.id }.id
+                    _recipeUiState.value.listOfIngredients.forEach {
+                        recipeRepository.insertRecipeWithIngredients(
+                            IngredientRecipe(
+                                it.ingredient.id,
+                                id,
+                                it.ingredientWeight
+                            )
+                        )
+                    }
+                } else{
+                    recipeRepository.updateRecipe(_recipeUiState.value.recipeDetails.toRecipe())
+                    recipeRepository.deleteIngredientsFromRecipe(_recipeUiState.value.recipeDetails.id)
+                    _recipeUiState.value.listOfIngredients.forEach {
+                        recipeRepository.insertRecipeWithIngredients(
+                            IngredientRecipe(
+                                it.ingredient.id,
+                                _recipeUiState.value.recipeDetails.id,
+                                it.ingredientWeight
+                            )
+                        )
+                    }
+                }
+            }
         }
     }
 
-    suspend fun addIngredient(ingredient: Ingredient, weight: Float){
-        recipeRepository.insertRecipeWithIngredients(IngredientRecipe(ingredient.id, recipeId, weight))
+    fun addIngredientToRecipe(ingredient: Ingredient, weight: Float){
+        val newList: MutableList<IngredientWithWeight> = _recipeUiState.value.listOfIngredients.toMutableList()
+        newList.forEach{
+            if(it.ingredient.id == ingredient.id) return
+        }
+        newList.add(IngredientWithWeight(ingredient, weight))
+        _recipeUiState.value = _recipeUiState.value.copy(listOfIngredients = newList)
     }
 
     companion object {

@@ -11,7 +11,6 @@ import com.yanetto.netto.model.Ingredient
 import com.yanetto.netto.model.IngredientRecipe
 import com.yanetto.netto.model.IngredientWithWeight
 import com.yanetto.netto.model.Recipe
-import com.yanetto.netto.model.RecipeWithIngredients
 import kotlinx.coroutines.flow.Flow
 
 @Dao
@@ -36,9 +35,12 @@ interface IngredientDao {
 
     @Insert(onConflict = OnConflictStrategy.IGNORE)
     fun insertRecipeWithIngredients(join: IngredientRecipe)
-    @Transaction
-    @Query("SELECT * FROM recipes")
-    fun getRecipesWithIngredients(): List<RecipeWithIngredients>
+
+    @Query("DELETE FROM ingredientRecipe WHERE recipeId = :recipeId")
+    fun deleteIngredientsFromRecipe(recipeId: Int)
+
+
+
 
     @Insert(onConflict = OnConflictStrategy.IGNORE)
     suspend fun insertRecipe(recipe: Recipe)
@@ -52,15 +54,8 @@ interface IngredientDao {
     @Query("SELECT * from recipes WHERE id = :id")
     fun getRecipe(id: Int): Flow<Recipe>
 
-    @Transaction
-    @Query("SELECT * FROM recipes WHERE id = :recipeId")
-    fun getRecipeWithIngredients(recipeId: Int): Flow<RecipeWithIngredients>
-
     @Query("SELECT * from recipes ORDER BY name ASC")
     fun getAllRecipes(): Flow<List<Recipe>>
-
-    @Query("SELECT weight from ingredientRecipe WHERE recipeId = :recipeId AND ingredientId = :ingredientId")
-    fun getIngredientWeight(recipeId: Int, ingredientId: Int): Flow<Float>
 
     @Transaction
     @Query("""

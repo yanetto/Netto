@@ -10,6 +10,7 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
@@ -62,11 +63,12 @@ fun ListOfIngredientsScreen(
 ){
     val listOfIngredientsUiState by viewModel.ingredientsUiState.collectAsState()
     val coroutineScope = rememberCoroutineScope()
+    val query by viewModel.query.collectAsState()
 
     Column (
-        modifier = modifier.padding(top = 8.dp, start = 8.dp, end = 8.dp)
+        modifier = modifier.padding(top = 8.dp, start = 8.dp, end = 8.dp).fillMaxHeight()
     ){
-        SearchBar(navigateToIngredientEntry = navigateToIngredientEntry)
+        SearchBar(navigateToIngredientEntry = navigateToIngredientEntry, query = query,  onValueChange = viewModel::onQueryChange)
 
         IngredientList(ingredientList = listOfIngredientsUiState.ingredientList, onIngredientCardClicked = navigateToIngredientUpdate, onDeleteClicked = { coroutineScope.launch { viewModel.deleteIngredient(it) } }, modifier = Modifier.fillMaxWidth())
     }
@@ -75,7 +77,9 @@ fun ListOfIngredientsScreen(
 @Composable
 fun SearchBar(
     modifier: Modifier = Modifier,
-    navigateToIngredientEntry: () -> Unit
+    query: String,
+    navigateToIngredientEntry: () -> Unit,
+    onValueChange: (String) -> Unit
 ) {
     Row(
         modifier = modifier.fillMaxWidth().padding(start = 8.dp)
@@ -101,13 +105,13 @@ fun SearchBar(
                 Spacer(modifier = Modifier.size(8.dp))
 
                 val focusManager = LocalFocusManager.current
-                var textValue by remember{ mutableStateOf(TextFieldValue("")) }
+                var textValue by remember{ mutableStateOf(TextFieldValue(query)) }
                 val interactionSource = remember{ MutableInteractionSource() }
                 val isFocused = interactionSource.collectIsFocusedAsState()
                 val valueHint = stringResource(id = R.string.search_your_ingredients)
 
                 LaunchedEffect(isFocused.value){
-                    if(!isFocused.value) textValue = TextFieldValue("")
+                    if(!isFocused.value) textValue = TextFieldValue(textValue.text)
                 }
 
                 val color = MaterialTheme.colorScheme.onSurface
@@ -115,7 +119,10 @@ fun SearchBar(
 
                 BasicTextField(
                     value = textValue,
-                    onValueChange = { textValue = it },
+                    onValueChange = {
+                        textValue = it
+                        onValueChange(textValue.text) },
+                    modifier = Modifier.weight(1f),
                     singleLine = true,
                     textStyle = MaterialTheme.typography.headlineSmall.copy(textAlign = TextAlign.Start, color = color),
                     interactionSource = interactionSource,
@@ -137,6 +144,23 @@ fun SearchBar(
                             )
                         }
                         it()
+                    }
+                }
+                if (query != ""){
+                    IconButton(onClick = {
+                        textValue = TextFieldValue("")
+                        onValueChange("") },
+                        modifier = Modifier
+                            .size(54.dp)
+                            .align(Alignment.CenterVertically))
+                    {
+                        Icon(
+                            painter = painterResource(id = R.drawable.close_40dp_fill0_wght400_grad0_opsz40),
+                            contentDescription = null,
+                            modifier = Modifier
+                                .padding(vertical = 8.dp),
+                            tint = MaterialTheme.colorScheme.primary
+                        )
                     }
                 }
             }

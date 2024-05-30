@@ -3,8 +3,9 @@ package com.yanetto.netto.ui
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
+import androidx.compose.animation.slideInHorizontally
+import androidx.compose.animation.slideOutHorizontally
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.indication
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -13,6 +14,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.BottomAppBar
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -20,11 +22,10 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.painter.Painter
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.tooling.preview.Preview
@@ -34,6 +35,7 @@ import androidx.navigation.NavHostController
 import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
+import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
 import com.yanetto.netto.R
@@ -69,8 +71,12 @@ fun BottomNavigationBarItem(
     Box(
         contentAlignment = Alignment.Center,
         modifier = modifier
-            .indication(interactionSource = interactionSource, indication = null)
-            .clickable(onClick = onClick)
+            .clip(CircleShape)
+            .clickable(
+                interactionSource = interactionSource,
+                indication = null,
+                onClick = onClick
+            )
             .fillMaxSize()
     ) {
         Icon(
@@ -84,9 +90,11 @@ fun BottomNavigationBarItem(
 
 @Composable
 fun BottomNavigationBar(
-    currentScreen: NettoScreen,
     navController: NavController
 ) {
+    val navBackStackEntry by navController.currentBackStackEntryAsState()
+    val currentDestination = navBackStackEntry?.destination
+
     BottomAppBar(
         containerColor = MaterialTheme.colorScheme.surfaceContainer,
         content = {
@@ -99,22 +107,46 @@ fun BottomNavigationBar(
                     modifier = Modifier.weight(1f),
                     painter = painterResource(id = R.drawable.menu_book_40dp_fill0_wght400_grad0_opsz40),
                     contentDescription = "Recipes",
-                    isSelected = currentScreen == NettoScreen.ListOfRecipesScreen,
-                    onClick = { if (currentScreen != NettoScreen.ListOfRecipesScreen) navController.navigate(NettoScreen.ListOfRecipesScreen.name) }
+                    isSelected = currentDestination?.route == NettoScreen.ListOfRecipesScreen.name,
+                    onClick = {if (currentDestination?.route != NettoScreen.ListOfRecipesScreen.name) {
+                        navController.navigate(NettoScreen.ListOfRecipesScreen.name) {
+                            popUpTo(navController.graph.startDestinationId) {
+                                saveState = true
+                            }
+                            launchSingleTop = true
+                            restoreState = true
+                        }
+                    }}
                 )
                 BottomNavigationBarItem(
                     modifier = Modifier.weight(1f),
                     painter = painterResource(id = R.drawable.grocery_40dp_fill0_wght400_grad0_opsz40),
                     contentDescription = "Ingredients",
-                    isSelected = currentScreen == NettoScreen.ListOfIngredientsScreen,
-                    onClick = { if (currentScreen != NettoScreen.ListOfIngredientsScreen) navController.navigate(NettoScreen.ListOfIngredientsScreen.name) }
+                    isSelected = currentDestination?.route == NettoScreen.ListOfIngredientsScreen.name,
+                    onClick = { if (currentDestination?.route != NettoScreen.ListOfIngredientsScreen.name) {
+                        navController.navigate(NettoScreen.ListOfIngredientsScreen.name) {
+                            popUpTo(navController.graph.startDestinationId) {
+                                saveState = true
+                            }
+                            launchSingleTop = true
+                            restoreState = true
+                        }
+                    } }
                 )
                 BottomNavigationBarItem(
                     modifier = Modifier.weight(1f),
                     painter = painterResource(id = R.drawable.person_40dp_fill0_wght400_grad0_opsz40),
                     contentDescription = "Profile",
-                    isSelected = currentScreen == NettoScreen.ProfileScreen,
-                    onClick = { if (currentScreen != NettoScreen.ProfileScreen) navController.navigate(NettoScreen.ProfileScreen.name) }
+                    isSelected = currentDestination?.route == NettoScreen.ProfileScreen.name,
+                    onClick = { if (currentDestination?.route != NettoScreen.ProfileScreen.name) {
+                        navController.navigate(NettoScreen.ProfileScreen.name) {
+                            popUpTo(navController.graph.startDestinationId) {
+                                saveState = true
+                            }
+                            launchSingleTop = true
+                            restoreState = true
+                        }
+                    } }
                 )
             }
         }
@@ -125,12 +157,10 @@ fun BottomNavigationBar(
 fun NettoApp(
     navController: NavHostController = rememberNavController()
 ){
-    var currentScreen by remember { mutableStateOf(NettoScreen.RecipeScreen)}
     Scaffold(
         bottomBar = {
             BottomNavigationBar(
-                navController = navController,
-                currentScreen = currentScreen
+                navController = navController
             )
         }
     ) { innerPadding ->
@@ -142,19 +172,22 @@ fun NettoApp(
         ){
             composable(
                 route = NettoScreen.RecipeScreen.name,
-                exitTransition = { fadeOut() },
-                enterTransition = { fadeIn() }
+                enterTransition = { fadeIn(animationSpec = tween(1000))},
+                exitTransition = { fadeOut(animationSpec = tween(1000))}
             ){
                 RecipeScreen(
                     navigateToEditRecipe = { navController.navigate("${NettoScreen.EditRecipeScreen.name}/$it") }
                 )
-                currentScreen = NettoScreen.RecipeScreen
             }
 
             composable(
                 route = RecipeDetailsDestination.routeWithArgs,
-                exitTransition = { fadeOut() },
-                enterTransition = { fadeIn() },
+                exitTransition = {
+                    slideOutHorizontally(animationSpec = tween(1000), targetOffsetX = { it})
+                                 },
+                enterTransition = {
+                    slideInHorizontally(animationSpec = tween(1000), initialOffsetX = {-it})
+                                  },
                 arguments = listOf(navArgument(RecipeDetailsDestination.recipeIdArg) {
                     type = NavType.IntType
                 })
@@ -164,25 +197,23 @@ fun NettoApp(
                         navController.navigate("${NettoScreen.EditRecipeScreen.name}/$it")
                     }
                 )
-                currentScreen = NettoScreen.RecipeScreen
             }
 
             composable(
                 route = NettoScreen.EditRecipeScreen.name,
-                exitTransition = { fadeOut() },
-                enterTransition = { fadeIn() }
+                enterTransition = { fadeIn(animationSpec = tween(1000))},
+                exitTransition = { fadeOut(animationSpec = tween(1000))}
             ){
                 EditRecipeScreen(
                     navigateBack = { navController.navigateUp()
                     }
                 )
-                currentScreen = NettoScreen.EditRecipeScreen
             }
 
             composable(
                 route = EditRecipeDetailsDestination.routeWithArgs,
-                exitTransition = { fadeOut() },
-                enterTransition = { fadeIn() },
+                enterTransition = { fadeIn(animationSpec = tween(1000))},
+                exitTransition = { fadeOut(animationSpec = tween(1000))},
                 arguments = listOf(navArgument(EditRecipeDetailsDestination.recipeIdArg) {
                     type = NavType.IntType
                 })
@@ -190,13 +221,12 @@ fun NettoApp(
                 EditRecipeScreen(
                     navigateBack = { navController.navigateUp() }
                 )
-                currentScreen = NettoScreen.EditRecipeScreen
             }
 
             composable(
                 route = NettoScreen.ListOfRecipesScreen.name,
-                exitTransition = { fadeOut() },
-                enterTransition = { fadeIn() }
+                enterTransition = { fadeIn(animationSpec = tween(1000))},
+                exitTransition = { fadeOut(animationSpec = tween(1000))}
             ){
                 ListOfRecipesScreen(
                     onRecipeCardClicked = {
@@ -204,26 +234,24 @@ fun NettoApp(
                     },
                     navigateToRecipeEntry = { navController.navigate(NettoScreen.EditRecipeScreen.name) }
                 )
-                currentScreen = NettoScreen.ListOfRecipesScreen
             }
 
             composable(
                 route = NettoScreen.ListOfIngredientsScreen.name,
-                exitTransition = { fadeOut() },
-                enterTransition = { fadeIn() }
+                enterTransition = { fadeIn(animationSpec = tween(1000))},
+                exitTransition = { fadeOut(animationSpec = tween(1000))}
             ){
-                    ListOfIngredientsScreen(
-                        navigateToIngredientUpdate = {
-                            navController.navigate("${NettoScreen.IngredientScreen.name}/$it") },
-                        navigateToIngredientEntry = {navController.navigate(NettoScreen.IngredientScreen.name)}
-                    )
-                    currentScreen = NettoScreen.ListOfIngredientsScreen
+                ListOfIngredientsScreen(
+                    navigateToIngredientUpdate = {
+                        navController.navigate("${NettoScreen.IngredientScreen.name}/$it") },
+                    navigateToIngredientEntry = {navController.navigate(NettoScreen.IngredientScreen.name)}
+                )
             }
 
             composable(
                 route = IngredientDetailsDestination.routeWithArgs,
-                exitTransition = { fadeOut() },
-                enterTransition = { fadeIn() },
+                enterTransition = { fadeIn(animationSpec = tween(1000))},
+                exitTransition = { fadeOut(animationSpec = tween(1000))},
                 arguments = listOf(navArgument(IngredientDetailsDestination.ingredientIdArg) {
                     type = NavType.IntType
                 })
@@ -231,27 +259,22 @@ fun NettoApp(
                 IngredientScreen(
                     navigateBack = { navController.navigateUp() }
                 )
-                currentScreen = NettoScreen.IngredientScreen
             }
 
             composable(
                 route = NettoScreen.IngredientScreen.name,
-                exitTransition = { fadeOut() },
-                enterTransition = { fadeIn() }
+                enterTransition = { fadeIn(animationSpec = tween(1000))},
+                exitTransition = { fadeOut(animationSpec = tween(1000))}
             ){
                 IngredientScreen(navigateBack = { navController.navigateUp() })
-                currentScreen = NettoScreen.IngredientScreen
             }
 
             composable(
                 route = NettoScreen.ProfileScreen.name,
-                exitTransition = { fadeOut() },
-                enterTransition = { fadeIn() },
-                popEnterTransition = { fadeIn(animationSpec = tween(800)) },
-                popExitTransition = { fadeOut() }
+                enterTransition = { fadeIn(animationSpec = tween(1000))},
+                exitTransition = { fadeOut(animationSpec = tween(1000))}
             ){
                 ProfileScreen()
-                currentScreen = NettoScreen.ProfileScreen
             }
         }
     }
@@ -264,7 +287,7 @@ fun ListOfRecipesScreenPreview(){
         Surface (
             modifier = Modifier.fillMaxWidth()
         ){
-            BottomNavigationBar(currentScreen = NettoScreen.ListOfRecipesScreen, navController = rememberNavController())
+            BottomNavigationBar(navController = rememberNavController())
         }
     }
 }
