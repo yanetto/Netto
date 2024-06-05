@@ -172,8 +172,8 @@ fun NettoApp(
         ){
             composable(
                 route = NettoScreen.RecipeScreen.name,
-                enterTransition = { fadeIn(animationSpec = tween(1000))},
-                exitTransition = { fadeOut(animationSpec = tween(1000))}
+                enterTransition = { fadeIn()},
+                exitTransition = { fadeOut()}
             ){
                 RecipeScreen(
                     navigateToEditRecipe = { navController.navigate("${NettoScreen.EditRecipeScreen.name}/$it") }
@@ -183,10 +183,10 @@ fun NettoApp(
             composable(
                 route = RecipeDetailsDestination.routeWithArgs,
                 exitTransition = {
-                    slideOutHorizontally(animationSpec = tween(1000), targetOffsetX = { it})
+                    slideOutHorizontally(animationSpec = tween(800), targetOffsetX = { it })
                                  },
                 enterTransition = {
-                    slideInHorizontally(animationSpec = tween(1000), initialOffsetX = {-it})
+                    slideInHorizontally(animationSpec = tween(800), initialOffsetX = {-it })
                                   },
                 arguments = listOf(navArgument(RecipeDetailsDestination.recipeIdArg) {
                     type = NavType.IntType
@@ -201,19 +201,18 @@ fun NettoApp(
 
             composable(
                 route = NettoScreen.EditRecipeScreen.name,
-                enterTransition = { fadeIn(animationSpec = tween(1000))},
-                exitTransition = { fadeOut(animationSpec = tween(1000))}
+                enterTransition = { fadeIn()},
+                exitTransition = { fadeOut()}
             ){
                 EditRecipeScreen(
-                    navigateBack = { navController.navigateUp()
-                    }
+                    navigateBack = { navController.navigateUp()}
                 )
             }
 
             composable(
                 route = EditRecipeDetailsDestination.routeWithArgs,
-                enterTransition = { fadeIn(animationSpec = tween(1000))},
-                exitTransition = { fadeOut(animationSpec = tween(1000))},
+                enterTransition = { fadeIn()},
+                exitTransition = { fadeOut()},
                 arguments = listOf(navArgument(EditRecipeDetailsDestination.recipeIdArg) {
                     type = NavType.IntType
                 })
@@ -225,8 +224,8 @@ fun NettoApp(
 
             composable(
                 route = NettoScreen.ListOfRecipesScreen.name,
-                enterTransition = { fadeIn(animationSpec = tween(1000))},
-                exitTransition = { fadeOut(animationSpec = tween(1000))}
+                enterTransition = { fadeIn()},
+                exitTransition = { fadeOut()}
             ){
                 ListOfRecipesScreen(
                     onRecipeCardClicked = {
@@ -238,8 +237,8 @@ fun NettoApp(
 
             composable(
                 route = NettoScreen.ListOfIngredientsScreen.name,
-                enterTransition = { fadeIn(animationSpec = tween(1000))},
-                exitTransition = { fadeOut(animationSpec = tween(1000))}
+                enterTransition = { fadeIn()},
+                exitTransition = { fadeOut()}
             ){
                 ListOfIngredientsScreen(
                     navigateToIngredientUpdate = {
@@ -250,8 +249,8 @@ fun NettoApp(
 
             composable(
                 route = IngredientDetailsDestination.routeWithArgs,
-                enterTransition = { fadeIn(animationSpec = tween(1000))},
-                exitTransition = { fadeOut(animationSpec = tween(1000))},
+                enterTransition = { fadeIn()},
+                exitTransition = { fadeOut()},
                 arguments = listOf(navArgument(IngredientDetailsDestination.ingredientIdArg) {
                     type = NavType.IntType
                 })
@@ -263,16 +262,16 @@ fun NettoApp(
 
             composable(
                 route = NettoScreen.IngredientScreen.name,
-                enterTransition = { fadeIn(animationSpec = tween(1000))},
-                exitTransition = { fadeOut(animationSpec = tween(1000))}
+                enterTransition = { fadeIn()},
+                exitTransition = { fadeOut()}
             ){
                 IngredientScreen(navigateBack = { navController.navigateUp() })
             }
 
             composable(
                 route = NettoScreen.ProfileScreen.name,
-                enterTransition = { fadeIn(animationSpec = tween(1000))},
-                exitTransition = { fadeOut(animationSpec = tween(1000))}
+                enterTransition = { fadeIn()},
+                exitTransition = { fadeOut()}
             ){
                 ProfileScreen()
             }

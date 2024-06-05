@@ -9,7 +9,6 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -99,14 +98,20 @@ fun SearchBar(
                     .padding(start = 8.dp, end = 8.dp),
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                Icon(
-                    painter = painterResource(id = R.drawable.search_black_36dp),
-                    contentDescription = null,
-                    modifier = Modifier.padding(vertical = 8.dp),
-                    tint = MaterialTheme.colorScheme.primary
-                )
-
-                Spacer(modifier = Modifier.size(8.dp))
+                IconButton(
+                    onClick = {},
+                    enabled = false,
+                    modifier = Modifier
+                        .size(48.dp)
+                        .align(Alignment.CenterVertically)
+                ) {
+                    Icon(
+                        painter = painterResource(id = R.drawable.search_black_36dp),
+                        contentDescription = null,
+                        modifier = Modifier.padding(vertical = 8.dp),
+                        tint = MaterialTheme.colorScheme.primary
+                    )
+                }
 
                 val focusManager = LocalFocusManager.current
                 var textValue by remember{ mutableStateOf(TextFieldValue(query)) }
@@ -155,8 +160,8 @@ fun SearchBar(
                         textValue = TextFieldValue("")
                         onValueChange("") },
                         modifier = Modifier
-                        .size(54.dp)
-                        .align(Alignment.CenterVertically))
+                            .size(48.dp)
+                            .align(Alignment.CenterVertically))
                     {
                         Icon(
                             painter = painterResource(id = R.drawable.close_40dp_fill0_wght400_grad0_opsz40),
@@ -192,14 +197,15 @@ fun RecipeCard(
     Box(
         modifier = modifier
             .clickable(onClick = { onRecipeCardClicked(recipe.id) })
-            .padding(horizontal = 8.dp)
             .fillMaxWidth()
     ){
         Row (modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.SpaceBetween,
             verticalAlignment = Alignment.CenterVertically
         ) {
-            Column(modifier = Modifier.padding(8.dp)) {
+            Column(modifier = Modifier
+                .padding(8.dp)
+                .weight(1f)) {
                 Text(
                     text = recipe.name,
                     style = MaterialTheme.typography.headlineSmall,
@@ -211,12 +217,12 @@ fun RecipeCard(
                     modifier = Modifier.padding(horizontal = 8.dp)
                 )
             }
-            IconButton(onClick = {onDeleteClicked(recipe.id)}) {
+            IconButton(modifier = modifier.weight(0.2f).size(24.dp),
+                onClick = { onDeleteClicked(recipe.id) }) {
                 Icon(
-                    painter = painterResource(id = R.drawable.delete_40dp_fill0_wght400_grad0_opsz40),
+                    painter = painterResource(id = R.drawable.more_vert_40dp_fill0_wght400_grad0_opsz40),
                     contentDescription = null,
-                    modifier = Modifier.padding(8.dp),
-                    tint = MaterialTheme.colorScheme.primary
+                    tint = MaterialTheme.colorScheme.onSurface
                 )
             }
         }

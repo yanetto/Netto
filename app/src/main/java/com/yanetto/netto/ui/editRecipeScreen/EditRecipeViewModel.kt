@@ -14,6 +14,7 @@ import com.yanetto.netto.model.IngredientWithWeight
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -25,6 +26,9 @@ class EditRecipeViewModel(
     private val _recipeUiState = MutableStateFlow(EditRecipeUiState())
     val recipeUiState: StateFlow<EditRecipeUiState> = _recipeUiState
 
+    private val _query = MutableStateFlow("")
+    val query: StateFlow<String> = _query
+
     private val recipeId: Int = savedStateHandle[EditRecipeDetailsDestination.recipeIdArg] ?: -1
 
     init {
@@ -35,10 +39,6 @@ class EditRecipeViewModel(
 
                 recipeRepository.getIngredientsWithWeights(recipeId)
                     .collect { ingredientsWithWeights ->
-//                        Log.d(
-//                            "RecipeViewModel",
-//                            "Ingredients with weights: $ingredientsWithWeights"
-//                        )
                         _recipeUiState.value =
                             _recipeUiState.value.copy(listOfIngredients = ingredientsWithWeights)
                     }
@@ -47,14 +47,29 @@ class EditRecipeViewModel(
 
         viewModelScope.launch {
             recipeRepository.getAllIngredientsStream()
-                .collect { ingredients ->
-//                    Log.d("RecipeViewModel", "All ingredients: $ingredients")
-                    _recipeUiState.value =
-                        _recipeUiState.value.copy(allIngredientList = ingredients)
+                .collect { allIngredients ->
+                    _recipeUiState.value = _recipeUiState.value.copy(allIngredientList = allIngredients)
                 }
+        }
+
+        viewModelScope.launch {
+            combine(
+                recipeRepository.getAllIngredientsStream(),
+                _query
+            ) { allIngredients, query ->
+                val filteredIngredients = allIngredients.filter {
+                    it.name.contains(query, ignoreCase = true)
+                }
+                _recipeUiState.value = _recipeUiState.value.copy(
+                    allIngredientList = filteredIngredients
+                )
+            }.collect{}
         }
     }
 
+    fun onQueryChange(newQuery: String) {
+        _query.value = newQuery
+    }
 
     fun updateUiState(recipeDetails: RecipeDetails) {
         _recipeUiState.value = _recipeUiState.value.copy(recipeDetails = recipeDetails, isEntryValid = validateInput(recipeDetails))
@@ -109,12 +124,27 @@ class EditRecipeViewModel(
         }
     }
 
-    fun addIngredientToRecipe(ingredient: Ingredient, weight: Float){
-        val newList: MutableList<IngredientWithWeight> = _recipeUiState.value.listOfIngredients.toMutableList()
-        newList.forEach{
-            if(it.ingredient.id == ingredient.id) return
+    fun isIngredientInRecipe(ingredient: Ingredient): Boolean{
+        _recipeUiState.value.listOfIngredients.forEach {
+            if(it.ingredient == ingredient) return true
         }
-        newList.add(IngredientWithWeight(ingredient, weight))
+        return false
+    }
+
+    fun editIngredient(isIngredientInRecipe: Boolean, ingredient: Ingredient){
+        if (isIngredientInRecipe) deleteIngredientFromRecipe(ingredient)
+        else addIngredientToRecipe(ingredient)
+    }
+
+    private fun deleteIngredientFromRecipe(ingredient: Ingredient){
+        val newList: MutableList<IngredientWithWeight> = _recipeUiState.value.listOfIngredients.toMutableList()
+        newList.removeIf { it.ingredient == ingredient }
+        _recipeUiState.value = _recipeUiState.value.copy(listOfIngredients = newList)
+    }
+
+    private fun addIngredientToRecipe(ingredient: Ingredient){
+        val newList: MutableList<IngredientWithWeight> = _recipeUiState.value.listOfIngredients.toMutableList()
+        newList.add(IngredientWithWeight(ingredient, 100f))
         _recipeUiState.value = _recipeUiState.value.copy(listOfIngredients = newList)
     }
 

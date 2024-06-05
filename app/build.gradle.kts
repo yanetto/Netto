@@ -59,7 +59,10 @@ android {
 
 
 dependencies {
-
+    implementation("io.coil-kt:coil:2.1.0")
+    implementation("io.coil-kt:coil-compose:2.1.0")
+    implementation ("androidx.activity:activity-compose:1.3.1")
+    implementation("androidx.compose.material:material:1.0.2")
     implementation("androidx.room:room-runtime:${rootProject.extra["room_version"]}")
     ksp("androidx.room:room-compiler:${rootProject.extra["room_version"]}")
     implementation("com.google.accompanist:accompanist-navigation-animation:0.21.1-beta")

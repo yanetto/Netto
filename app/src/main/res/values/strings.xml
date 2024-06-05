@@ -30,4 +30,6 @@
     <string name="_rub">" rub"</string>
     <string name="_kcal">" kcal"</string>
     <string name="number_of_servings">Number of servings</string>
+    <string name="username">User</string>
+    <string name="profile">Profile</string>
 </resources>

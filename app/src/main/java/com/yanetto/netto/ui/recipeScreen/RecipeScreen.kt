@@ -1,6 +1,9 @@
 
 package com.yanetto.netto.ui.recipeScreen
 
+import android.net.Uri
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.gestures.Orientation
 import androidx.compose.foundation.gestures.scrollable
 import androidx.compose.foundation.interaction.MutableInteractionSource
@@ -10,7 +13,6 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -19,13 +21,12 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.material3.BottomSheetScaffold
 import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.ElevatedCard
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -34,6 +35,7 @@ import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedCard
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
+import androidx.compose.material3.rememberBottomSheetScaffoldState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
@@ -43,7 +45,9 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.paint
 import androidx.compose.ui.graphics.SolidColor
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.res.painterResource
@@ -55,6 +59,7 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
+import coil.compose.rememberAsyncImagePainter
 import com.yanetto.netto.R
 import com.yanetto.netto.model.IngredientWithWeight
 import com.yanetto.netto.model.NutritionalOption
@@ -67,6 +72,7 @@ object RecipeDetailsDestination {
     const val routeWithArgs = "$route/{$recipeIdArg}"
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun RecipeScreen(
     modifier: Modifier = Modifier,
@@ -74,18 +80,115 @@ fun RecipeScreen(
     navigateToEditRecipe: (Int) -> Unit
 ){
     val recipeUiState by recipeViewModel.recipeUiState.collectAsState()
+    var selectedImage by remember { mutableStateOf<Uri?>(null)}
+    val galleryLauncher =
+        rememberLauncherForActivityResult(ActivityResultContracts.GetContent()) {
+            selectedImage = it
+        }
 
-    LazyColumn (
-        modifier = modifier
-            .height(LocalConfiguration.current.screenHeightDp.dp)
-            .fillMaxWidth()
-            .scrollable(
-                orientation = Orientation.Vertical,
-                state = rememberScrollState()
-            )
-    ) {
-        item {
-            Column {
+    val scaffoldState = rememberBottomSheetScaffoldState()
+
+    BottomSheetScaffold (
+        modifier = modifier.fillMaxWidth(),
+        scaffoldState = scaffoldState,
+        sheetPeekHeight = LocalConfiguration.current.screenHeightDp.dp * 0.5f,
+        sheetContent = {
+            LazyColumn(
+                modifier = modifier
+                    .height(LocalConfiguration.current.screenHeightDp.dp)
+                    .fillMaxSize()
+                    .scrollable(
+                        orientation = Orientation.Vertical,
+                        state = rememberScrollState()
+                    )
+            ) {
+                item {
+                    NameAndDescriptionLabels(
+                        modifier = Modifier.padding(horizontal = 8.dp),
+                        recipeName = recipeUiState.recipeDetails.name,
+                        recipeDescription = recipeUiState.recipeDetails.description
+                    )
+
+                    ServingsCard(
+                        modifier = Modifier.padding(horizontal = 8.dp),
+                        servingsCount = recipeUiState.updatedServingsCount,
+                        onChangeServingsButtonClick = recipeViewModel::changeServingCount
+                    )
+
+                    Label(
+                        modifier = Modifier.padding(start = 8.dp, end = 8.dp, bottom = 8.dp),
+                        labelText = stringResource(R.string.ingredients)
+                    )
+
+                    HorizontalDivider(
+                        modifier = Modifier
+                            .padding(horizontal = 16.dp)
+                            .fillMaxWidth()
+                            .width(1.dp)
+                    )
+
+                    for (i in recipeUiState.listOfIngredients.indices) {
+                        val ingredient = recipeUiState.listOfIngredients[i]
+                        IngredientItem(
+                            modifier = Modifier.padding(horizontal = 8.dp),
+                            ingredient = ingredient,
+                            weight = recipeViewModel.getIngredientWeight(
+                                i,
+                                newTotalWeight = recipeUiState.updatedWeight
+                            ),
+                            onChangeIngredientWeight = recipeViewModel::onChangeIngredientWeight
+                        )
+                    }
+
+                    Label(
+                        modifier = Modifier.padding(start = 8.dp, end = 8.dp, bottom = 8.dp),
+                        labelText = stringResource(R.string.nutritional_info)
+                    )
+
+                    NutritionalInfoSwitch(
+                        modifier = Modifier.padding(horizontal = 8.dp),
+                        uiState = recipeUiState,
+                        onChangeNutritionalOption = recipeViewModel::changeNutritionalOption
+                    )
+
+                    NutritionalInfo(
+                        modifier = Modifier.padding(horizontal = 8.dp),
+                        energy = recipeUiState.energy * recipeUiState.newWeight / 100,
+                        protein = recipeUiState.protein * recipeUiState.newWeight / 100,
+                        fat = recipeUiState.fat * recipeUiState.newWeight / 100,
+                        carbohydrates = recipeUiState.carbohydrates * recipeUiState.newWeight / 100
+                    )
+
+                    Spacer(modifier = Modifier.padding(4.dp))
+
+                    val price =
+                        recipeUiState.totalPrice * recipeUiState.newWeight / recipeUiState.totalWeight
+
+                    PriceAndWeightLabels(
+                        modifier = Modifier.padding(horizontal = 8.dp),
+                        label = stringResource(R.string.weight),
+                        number = stringResource(R.string.new_weight_g, recipeUiState.newWeight),
+                    )
+                    PriceAndWeightLabels(
+                        modifier = Modifier.padding(horizontal = 8.dp),
+                        label = stringResource(R.string.price),
+                        number = stringResource(id = R.string.price_value, price),
+                    )
+                    Spacer(
+                        modifier = modifier
+                            .height(16.dp)
+                    )
+                }
+            }
+        }
+    ){
+        Box(
+            modifier = Modifier
+                .height(LocalConfiguration.current.screenHeightDp.dp * 0.5f)
+                .fillMaxWidth()
+                .paint(painter = rememberAsyncImagePainter(model = selectedImage), alignment = Alignment.TopCenter, contentScale = ContentScale.FillHeight)
+        ) {
+            Column(modifier = Modifier.fillMaxSize()) {
                 Row(
                     modifier = modifier
                         .fillMaxWidth()
@@ -94,7 +197,7 @@ fun RecipeScreen(
                 ) {
                     IconButton(
                         enabled = true,
-                        onClick = { },
+                        onClick = { galleryLauncher.launch("image/*") },
                         modifier = Modifier
                             .size(48.dp)
                     ) {
@@ -119,88 +222,6 @@ fun RecipeScreen(
                         )
                     }
                 }
-            }
-
-            Spacer(modifier = Modifier.height(224.dp))
-            ElevatedCard(
-                modifier = Modifier
-                    .fillMaxHeight(),
-                shape = RoundedCornerShape(8,8, 0, 0),
-                elevation = CardDefaults.elevatedCardElevation(defaultElevation = 12.dp)
-            ) {
-                Spacer(modifier = Modifier.height(8.dp))
-                NameAndDescriptionLabels(
-                    modifier = Modifier.padding(horizontal = 8.dp),
-                    recipeName = recipeUiState.recipeDetails.name,
-                    recipeDescription = recipeUiState.recipeDetails.description
-                )
-
-                ServingsCard(
-                    modifier = Modifier.padding(horizontal = 8.dp),
-                    servingsCount = recipeUiState.updatedServingsCount,
-                    onChangeServingsButtonClick = recipeViewModel::changeServingCount
-                )
-
-                Label(
-                    modifier = Modifier.padding(start = 8.dp, end = 8.dp, bottom = 8.dp),
-                    labelText = stringResource(R.string.ingredients)
-                )
-
-                HorizontalDivider(
-                    modifier = Modifier
-                        .padding(horizontal = 16.dp)
-                        .fillMaxWidth()
-                        .width(1.dp)
-                )
-
-                for (i in recipeUiState.listOfIngredients.indices) {
-                    val ingredient = recipeUiState.listOfIngredients[i]
-                    IngredientItem(
-                        modifier = Modifier.padding(horizontal = 8.dp),
-                        ingredient = ingredient,
-                        weight = recipeViewModel.getIngredientWeight(i, newTotalWeight = recipeUiState.updatedWeight),
-                        onChangeIngredientWeight = recipeViewModel::onChangeIngredientWeight
-                    )
-                }
-
-                Label(
-                    modifier = Modifier.padding(start = 8.dp, end = 8.dp, bottom = 8.dp),
-                    labelText = stringResource(R.string.nutritional_info)
-                )
-
-                NutritionalInfoSwitch(
-                    modifier = Modifier.padding(horizontal = 8.dp),
-                    uiState = recipeUiState,
-                    onChangeNutritionalOption = recipeViewModel::changeNutritionalOption
-                )
-
-                NutritionalInfo(
-                    modifier = Modifier.padding(horizontal = 8.dp),
-                    energy = recipeUiState.energy * recipeUiState.newWeight / 100,
-                    protein = recipeUiState.protein * recipeUiState.newWeight / 100,
-                    fat = recipeUiState.fat * recipeUiState.newWeight / 100,
-                    carbohydrates = recipeUiState.carbohydrates * recipeUiState.newWeight / 100
-                )
-
-                Spacer(modifier = Modifier.padding(4.dp))
-
-                val price =
-                    recipeUiState.totalPrice * recipeUiState.newWeight / recipeUiState.totalWeight
-
-                PriceAndWeightLabels(
-                    modifier = Modifier.padding(horizontal = 8.dp),
-                    label = stringResource(R.string.weight),
-                    number = stringResource(R.string.new_weight_g, recipeUiState.newWeight),
-                )
-                PriceAndWeightLabels(
-                    modifier = Modifier.padding(horizontal = 8.dp),
-                    label = stringResource(R.string.price),
-                    number = stringResource(id = R.string.price_value, price),
-                )
-                Spacer(
-                    modifier = modifier
-                        .height(16.dp)
-                )
             }
         }
     }

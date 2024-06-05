@@ -2,6 +2,9 @@
 
 package com.yanetto.netto.ui.ingredientScreen
 
+import android.net.Uri
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.gestures.Orientation
 import androidx.compose.foundation.gestures.scrollable
 import androidx.compose.foundation.interaction.MutableInteractionSource
@@ -11,7 +14,6 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -20,12 +22,10 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
-import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.ElevatedCard
+import androidx.compose.material3.BottomSheetScaffold
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
@@ -33,6 +33,7 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
+import androidx.compose.material3.rememberBottomSheetScaffoldState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
@@ -43,7 +44,10 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.paint
 import androidx.compose.ui.graphics.SolidColor
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
@@ -53,6 +57,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
+import coil.compose.rememberAsyncImagePainter
 import com.yanetto.netto.R
 import com.yanetto.netto.ui.theme.NettoTheme
 import kotlinx.coroutines.launch
@@ -72,57 +77,30 @@ fun IngredientScreen(
 ){
     val coroutineScope = rememberCoroutineScope()
     val ingredientUiState by ingredientViewModel.ingredientUiState.collectAsState()
-
-    Column {
-        Row (modifier = modifier
-            .fillMaxWidth()
-            .padding(top = 8.dp, start = 8.dp, end = 8.dp),
-            horizontalArrangement = Arrangement.SpaceBetween
-        ){
-            IconButton(
-                enabled = true,
-                onClick = {  },
-                modifier = Modifier
-                    .size(48.dp)
-            ){
-                Icon(
-                    painter = painterResource(id = R.drawable.add_a_photo_24dp),
-                    contentDescription = null,
-                    tint = MaterialTheme.colorScheme.primary
-                )
-            }
-
-            IconButton(
-                enabled = true,
-                onClick = { coroutineScope.launch {ingredientViewModel.saveItem()}
-                          navigateBack()},
-                modifier = Modifier
-                    .size(48.dp)
-            ) {
-                Icon(
-                    painter = painterResource(id = R.drawable.done_24dp),
-                    contentDescription = null,
-                    modifier = Modifier,
-                    tint = MaterialTheme.colorScheme.primary
-                )
-            }
+    var selectedImage by remember { mutableStateOf<Uri?>(null)}
+    val galleryLauncher =
+        rememberLauncherForActivityResult(ActivityResultContracts.GetContent()) {
+            selectedImage = it
         }
 
-        LazyColumn(
-            modifier = modifier
-                .fillMaxWidth()
-                .scrollable(
-                    orientation = Orientation.Vertical,
-                    state = rememberScrollState()
-                )
-        ){
-            item {
-                Spacer(modifier = Modifier.height(224.dp))
-                ElevatedCard (
-                    modifier = Modifier.fillMaxHeight(),
-                    shape = RoundedCornerShape(8,8, 0, 0),
-                    elevation = CardDefaults.elevatedCardElevation(defaultElevation = 12.dp)
-                ){
+    val scaffoldState = rememberBottomSheetScaffoldState()
+
+
+    BottomSheetScaffold (
+        modifier = modifier.fillMaxWidth(),
+        scaffoldState = scaffoldState,
+        sheetPeekHeight = LocalConfiguration.current.screenHeightDp.dp * 0.5f,
+        sheetContent = {
+            LazyColumn (
+                modifier = modifier
+                    .height(LocalConfiguration.current.screenHeightDp.dp)
+                    .fillMaxSize()
+                    .scrollable(
+                        orientation = Orientation.Vertical,
+                        state = rememberScrollState()
+                    )
+            ) {
+                item {
                     IngredientNameLabel(
                         modifier = Modifier.padding(vertical = 8.dp, horizontal = 8.dp),
                         ingredientDetails = ingredientUiState.ingredientDetails,
@@ -143,18 +121,23 @@ fun IngredientScreen(
 
                     Spacer(modifier = Modifier.height(16.dp))
 
-                    Label(modifier = Modifier.padding(horizontal = 8.dp), labelText = stringResource(id = R.string.nutritional_info))
+                    Label(
+                        modifier = Modifier.padding(horizontal = 8.dp),
+                        labelText = stringResource(id = R.string.nutritional_info)
+                    )
 
                     NutritionalIngredientItems(
                         modifier = Modifier.padding(horizontal = 8.dp),
-                        param = stringResource(R.string.energy), info = stringResource(R.string._kcal),
+                        param = stringResource(R.string.energy),
+                        info = stringResource(R.string._kcal),
                         ingredientDetail = ingredientUiState.ingredientDetails.energy,
                         onValueChange = ingredientViewModel::updateEnergy
                     )
 
                     NutritionalIngredientItems(
                         modifier = Modifier.padding(horizontal = 8.dp),
-                        param = stringResource(R.string.protein), info = stringResource(R.string._g),
+                        param = stringResource(R.string.protein),
+                        info = stringResource(R.string._g),
                         ingredientDetail = ingredientUiState.ingredientDetails.protein,
                         onValueChange = ingredientViewModel::updateProtein
                     )
@@ -168,7 +151,8 @@ fun IngredientScreen(
 
                     NutritionalIngredientItems(
                         modifier = Modifier.padding(horizontal = 8.dp),
-                        param = stringResource(R.string.carbohydrates), info = stringResource(R.string._g),
+                        param = stringResource(R.string.carbohydrates),
+                        info = stringResource(R.string._g),
                         ingredientDetail = ingredientUiState.ingredientDetails.carbohydrates,
                         onValueChange = ingredientViewModel::updateCarbohydrates
                     )
@@ -181,20 +165,68 @@ fun IngredientScreen(
 
                     WeightAndPriceItems(
                         modifier = Modifier.padding(horizontal = 8.dp),
-                        label = stringResource(id = R.string.weight), info = stringResource(R.string._g),
+                        label = stringResource(id = R.string.weight),
+                        info = stringResource(R.string._g),
                         ingredientDetail = ingredientUiState.ingredientDetails.weight,
                         onValueChange = ingredientViewModel::updateWeight
                     )
 
                     WeightAndPriceItems(
                         modifier = Modifier.padding(horizontal = 8.dp),
-                        label = stringResource(id = R.string.price), info = stringResource(R.string._rub),
+                        label = stringResource(id = R.string.price),
+                        info = stringResource(R.string._rub),
                         ingredientDetail = ingredientUiState.ingredientDetails.price,
                         onValueChange = ingredientViewModel::updatePrice
                     )
                     Spacer(modifier = Modifier.height(16.dp))
                 }
+            }
+        }
+    ){
 
+        Box(
+            modifier = Modifier
+                .height(LocalConfiguration.current.screenHeightDp.dp * 0.5f)
+                .fillMaxWidth()
+                .paint(painter = rememberAsyncImagePainter(model = selectedImage), alignment = Alignment.TopCenter, contentScale = ContentScale.FillHeight)
+        ) {
+            Column {
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(top = 8.dp, start = 8.dp, end = 8.dp),
+                    horizontalArrangement = Arrangement.SpaceBetween
+                ) {
+                    IconButton(
+                        enabled = true,
+                        onClick = { galleryLauncher.launch("image/*") },
+                        modifier = Modifier
+                            .size(48.dp)
+                    ) {
+                        Icon(
+                            painter = painterResource(id = R.drawable.add_a_photo_24dp),
+                            contentDescription = null,
+                            tint = MaterialTheme.colorScheme.primary
+                        )
+                    }
+
+                    IconButton(
+                        enabled = true,
+                        onClick = {
+                            coroutineScope.launch { ingredientViewModel.saveItem() }
+                            navigateBack()
+                        },
+                        modifier = Modifier
+                            .size(48.dp)
+                    ) {
+                        Icon(
+                            painter = painterResource(id = R.drawable.done_24dp),
+                            contentDescription = null,
+                            modifier = Modifier,
+                            tint = MaterialTheme.colorScheme.primary
+                        )
+                    }
+                }
             }
         }
     }
@@ -442,6 +474,10 @@ fun NutritionalIngredientItems(
             interactionSource = interactionSource,
             keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
             keyboardActions = KeyboardActions(onDone  = {
+                if (textValue.text.last() == '.'){
+                    textValue = TextFieldValue(textValue.text + '0')
+                    onValueChange(textValue.text)
+                }
                 focusManager.clearFocus()
             }),
             cursorBrush = SolidColor(color)
