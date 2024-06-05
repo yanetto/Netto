@@ -69,6 +69,7 @@ object IngredientDetailsDestination {
     const val routeWithArgs = "$route/{$ingredientIdArg}"
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun IngredientScreen(
     modifier: Modifier = Modifier,
