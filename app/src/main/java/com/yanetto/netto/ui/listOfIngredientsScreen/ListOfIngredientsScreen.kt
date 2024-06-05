@@ -226,10 +226,10 @@ fun IngredientCard(
 
 @Composable
 fun IngredientList(
+    modifier: Modifier = Modifier,
     ingredientList: List<Ingredient>,
     onIngredientCardClicked: (Int) -> Unit,
-    onDeleteClicked: (Int) -> Unit = {},
-    modifier: Modifier = Modifier
+    onDeleteClicked: (Int) -> Unit = {}
 ){
     LazyColumn(
         modifier = modifier
